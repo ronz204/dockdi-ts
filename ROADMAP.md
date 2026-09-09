@@ -26,10 +26,10 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Un prototipo ejecutable y validado con tests en Bun (`bun test`) que demuestre que el compilador de TypeScript valida los tipos de los tokens frente a los parámetros del constructor y que un resolver mínimo instancia la clase correctamente.
 
 ### Tareas
-- [ ] **Diseño del Branded Token (`Token<T>`)**
-  - [ ] Definir el tipo phantom sobre `symbol` (`unique symbol` brand no exportado a runtime).
-  - [ ] Implementar la función creadora `token<T>(description?: string): Token<T>`.
-  - [ ] Escribir tests de tipado estático verificando que dos tokens con tipos incompatibles (`Token<A>` vs `Token<B>`) no sean asignables entre sí a nivel de TypeScript.
+- [x] **Diseño del Branded Token (`Token<T>`)**
+  - [x] Definir el tipo phantom sobre `symbol` (`unique symbol` brand no exportado a runtime).
+  - [x] Implementar la función creadora `token<T>(description?: string): Token<T>`.
+  - [x] Escribir tests de tipado estático verificando que dos tokens con tipos incompatibles (`Token<A>` vs `Token<B>`) no sean asignables entre sí a nivel de TypeScript.
 - [ ] **Investigación y prototipado del mapeo Constructor ↔ Tokens**
   - [ ] Explorar enfoques de asociación: tupla tipada vinculada a la clase vs. helper constructor tipado vs. inferencia por función factoría.
   - [ ] Evaluar seguridad frente al gap de Brandi (garantizar en compile-time que el orden y tipo de los tokens correspondan exactamente a los parámetros del constructor).

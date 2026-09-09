@@ -137,6 +137,48 @@ describe("Lifecycle Scopes (Phase 2)", () => {
       expect(root1.b.leaf).not.toBe(root2.b.leaf);
       expect(root1.b.leaf.id).not.toBe(root2.b.leaf.id);
     });
+
+    it("applies resolution scope identically when the shared node is a factory binding", () => {
+      const container = new Container();
+      let evaluations = 0;
+
+      const factoryLeafToken = token<{ id: number }>("factory.leaf");
+      const factoryBranchBToken = token<{ leaf: { id: number } }>(
+        "factory.branch.b",
+      );
+      const factoryBranchCToken = token<{ leaf: { id: number } }>(
+        "factory.branch.c",
+      );
+      const factoryRootToken = token<{
+        b: { leaf: { id: number } };
+        c: { leaf: { id: number } };
+      }>("factory.root");
+
+      container
+        .bind(factoryLeafToken)
+        .toFactory(() => ({ id: ++evaluations }), [])
+        .inResolutionScope();
+      container
+        .bind(factoryBranchBToken)
+        .toFactory((leaf) => ({ leaf }), [factoryLeafToken]);
+      container
+        .bind(factoryBranchCToken)
+        .toFactory((leaf) => ({ leaf }), [factoryLeafToken]);
+      container
+        .bind(factoryRootToken)
+        .toFactory(
+          (b, c) => ({ b, c }),
+          [factoryBranchBToken, factoryBranchCToken],
+        );
+
+      const root1 = container.get(factoryRootToken);
+      const root2 = container.get(factoryRootToken);
+
+      // Shared within a single resolution tree, fresh across separate get() calls —
+      // proves resolver's scope caching applies to factories, not just classes.
+      expect(root1.b.leaf).toBe(root1.c.leaf);
+      expect(root1.b.leaf).not.toBe(root2.b.leaf);
+    });
   });
 
   describe("container.reset() Cache Invalidation", () => {
@@ -157,6 +199,20 @@ describe("Lifecycle Scopes (Phase 2)", () => {
 
       expect(afterReset1).not.toBe(beforeReset1);
       expect(afterReset1).toBe(afterReset2);
+    });
+
+    it("leaves toValue bindings unaffected by reset()", () => {
+      const container = new Container();
+      const config = { host: "prod.db", port: 5432 };
+      const configToken = token<{ host: string; port: number }>("value.config");
+      container.bind(configToken).toValue(config);
+
+      const before = container.get(configToken);
+      container.reset();
+      const after = container.get(configToken);
+
+      expect(after).toBe(before);
+      expect(after).toBe(config);
     });
   });
 

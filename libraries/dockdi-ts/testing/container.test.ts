@@ -82,6 +82,23 @@ describe("Container & Registry (Phase 1)", () => {
       const result = container.get(factoriedToken);
       expect(result).toBe("FACTORY_RESULT");
     });
+
+    it("preserves argument order across multiple factory dependencies", () => {
+      const container = new Container();
+      const aToken = token<string>("factory.a");
+      const bToken = token<number>("factory.b");
+      const cToken = token<boolean>("factory.c");
+      const combinedToken = token<string>("factory.combined");
+
+      container.bind(aToken).toValue("first");
+      container.bind(bToken).toValue(2);
+      container.bind(cToken).toValue(true);
+      container
+        .bind(combinedToken)
+        .toFactory((a, b, c) => `${a}-${b}-${c}`, [aToken, bToken, cToken]);
+
+      expect(container.get(combinedToken)).toBe("first-2-true");
+    });
   });
 
   describe("Transient Scope Isolation", () => {

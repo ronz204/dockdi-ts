@@ -4,6 +4,7 @@ export type {
   Binding,
   BindingBuilder,
   BindingType,
+  ScopedBindingBuilder,
   ScopeType,
 } from "./binding";
 export {

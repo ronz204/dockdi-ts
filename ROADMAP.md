@@ -10,7 +10,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 |---|---|---|
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
 | **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | 🟢 Completada |
-| **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | ⚪ Pendiente |
+| **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | 🟢 Completada |
 | **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | ⚪ Pendiente |
 | **Fase 4** | Resolución asíncrona opt-in (Async factories) | ⚪ Pendiente |
 | **Fase 5** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
@@ -72,16 +72,16 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Pruebas unitarias que demuestren la preservación exacta de referencias para singletons y aislamiento entre llamadas para transient/resolution-scope.
 
 ### Tareas
-- [ ] **Scope Singleton**
-  - [ ] Extender la API de binding para especificar scope: `.inSingletonScope()` o `.scope('singleton')`.
-  - [ ] Implementar la caché de instancias singleton dentro del contenedor.
-  - [ ] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
-- [ ] **Evaluación e Implementación de Resolution-Scope**
-  - [ ] Analizar la viabilidad y necesidad práctica de un scope acotado al árbol de una resolución (`resolution-scope` / contextual).
-  - [ ] Si se aprueba: implementar contexto de resolución efímero que comparta instancias solo durante el ciclo de ejecución de un único `container.get()`.
-- [ ] **Suite de Pruebas de Ciclo de Vida**
-  - [ ] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos dependen del singleton `D`).
-  - [ ] Tests de limpieza de memoria o reinicio de contenedor si aplica.
+- [x] **Scope Singleton**
+  - [x] Extender la API de binding para especificar scope: `.inSingletonScope()` o `.scope('singleton')`.
+  - [x] Implementar la caché de instancias singleton dentro del contenedor.
+  - [x] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
+- [x] **Evaluación e Implementación de Resolution-Scope**
+  - [x] Analizar la viabilidad y necesidad práctica de un scope acotado al árbol de una resolución (`resolution-scope` / contextual).
+  - [x] Si se aprueba: implementar contexto de resolución efímero que comparta instancias solo durante el ciclo de ejecución de un único `container.get()`.
+- [x] **Suite de Pruebas de Ciclo de Vida**
+  - [x] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos dependen del singleton `D`).
+  - [x] Tests de limpieza de memoria o reinicio de contenedor si aplica.
 
 ---
 

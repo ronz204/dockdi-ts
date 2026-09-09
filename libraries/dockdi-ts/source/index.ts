@@ -1,1 +1,1 @@
-console.log("hello from dockdi ts");
+export const VERSION: string = "1.0.0";

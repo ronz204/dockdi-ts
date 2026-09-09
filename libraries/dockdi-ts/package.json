@@ -1,11 +1,63 @@
 {
   "name": "dockdi",
-  "module": "index.ts",
+  "description": "Type-first dependency injection library for TypeScript based on explicit branded tokens",
+  "version": "1.0.0",
   "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest"
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
-  "peerDependencies": {
-    "typescript": "^5"
+  "license": "MIT",
+  "author": {
+    "name": "ronz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronz204/dockdi.git"
+  },
+  "keywords": [
+    "di",
+    "ioc",
+    "tokens",
+    "typescript",
+    "zero-dependencies",
+    "inversion-of-control",
+    "dependency-injection"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "bunup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "bunup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "prepublish": "bun run build && bun run typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@types/bun": "latest",
+    "bunup": "^0.16.32",
+    "expect-type": "^1.4.0",
+    "mitata": "^1.0.34",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
   }
 }

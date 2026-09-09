@@ -9,7 +9,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | Fase | Descripción | Estado |
 |---|---|---|
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
-| **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | ⚪ Pendiente |
+| **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | 🟢 Completada |
 | **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | ⚪ Pendiente |
 | **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | ⚪ Pendiente |
 | **Fase 4** | Resolución asíncrona opt-in (Async factories) | ⚪ Pendiente |
@@ -48,20 +48,20 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Contenedor funcional con API pública `bind` y `get`, que resuelva dependencias transitivas simples y falle con errores claros cuando falte un token.
 
 ### Tareas
-- [ ] **Estructura del Container y Registro**
-  - [ ] Implementar la clase `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
-  - [ ] Diseñar e implementar la API fluida de registro `container.bind(token)`.
-  - [ ] Soportar binding a clase (`toClass(Constructor, tokens)`).
-  - [ ] Soportar binding a valor constante (`toValue(value)`).
-  - [ ] Soportar binding a fábrica síncrona (`toFactory(factoryFn, tokens)`).
-- [ ] **Motor de Resolución Síncrona (`get`)**
-  - [ ] Implementar `container.get(token)` con resolución recursiva de dependencias.
-  - [ ] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
-  - [ ] Manejar tokens no registrados lanzando un error específico con el nombre/descripción del token faltante.
-- [ ] **Suite de Pruebas de la Fase 1**
-  - [ ] Tests de resolución de dependencias lineales (ej. `A -> B -> C`).
-  - [ ] Tests validando que múltiples llamadas a `get` con scope transient devuelven referencias distintas (`instance1 !== instance2`).
-  - [ ] Tests de fallo al solicitar tokens inexistentes.
+- [x] **Estructura del Container y Registro**
+  - [x] Implementar la clase `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
+  - [x] Diseñar e implementar la API fluida de registro `container.bind(token)`.
+  - [x] Soportar binding a clase (`toClass(Constructor, tokens)`).
+  - [x] Soportar binding a valor constante (`toValue(value)`).
+  - [x] Soportar binding a fábrica síncrona (`toFactory(factoryFn, tokens)`).
+- [x] **Motor de Resolución Síncrona (`get`)**
+  - [x] Implementar `container.get(token)` con resolución recursiva de dependencias.
+  - [x] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
+  - [x] Manejar tokens no registrados lanzando un error específico con el nombre/descripción del token faltante.
+- [x] **Suite de Pruebas de la Fase 1**
+  - [x] Tests de resolución de dependencias lineales (ej. `A -> B -> C`).
+  - [x] Tests validando que múltiples llamadas a `get` con scope transient devuelven referencias distintas (`instance1 !== instance2`).
+  - [x] Tests de fallo al solicitar tokens inexistentes.
 
 ---
 

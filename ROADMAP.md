@@ -8,7 +8,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 | Fase | Descripción | Estado |
 |---|---|---|
-| **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟡 Pendiente / Listo para iniciar |
+| **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
 | **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | ⚪ Pendiente |
 | **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | ⚪ Pendiente |
 | **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | ⚪ Pendiente |
@@ -30,14 +30,14 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
   - [x] Definir el tipo phantom sobre `symbol` (`unique symbol` brand no exportado a runtime).
   - [x] Implementar la función creadora `token<T>(description?: string): Token<T>`.
   - [x] Escribir tests de tipado estático verificando que dos tokens con tipos incompatibles (`Token<A>` vs `Token<B>`) no sean asignables entre sí a nivel de TypeScript.
-- [ ] **Investigación y prototipado del mapeo Constructor ↔ Tokens**
-  - [ ] Explorar enfoques de asociación: tupla tipada vinculada a la clase vs. helper constructor tipado vs. inferencia por función factoría.
-  - [ ] Evaluar seguridad frente al gap de Brandi (garantizar en compile-time que el orden y tipo de los tokens correspondan exactamente a los parámetros del constructor).
-  - [ ] Prototipar la sintaxis elegida en un archivo de prueba en `libraries/dockdi-ts`.
-- [ ] **Resolver y validación mínima en Bun**
-  - [ ] Implementar un resolver mínimo que tome el constructor y la tupla de tokens y resuelva las dependencias instanciando con `new`.
-  - [ ] Validar ejecución exitosa con `bun test` y `bun x tsc --noEmit`.
-  - [ ] Documentar formalmente la decisión de diseño acordada como base para la Fase 1.
+- [x] **Investigación y prototipado del mapeo Constructor ↔ Tokens**
+  - [x] Explorar enfoques de asociación: tupla tipada vinculada a la clase vs. helper constructor tipado vs. inferencia por función factoría.
+  - [x] Evaluar seguridad frente al gap de Brandi (garantizar en compile-time que el orden y tipo de los tokens correspondan exactamente a los parámetros del constructor).
+  - [x] Prototipar la sintaxis elegida en un archivo de prueba en `libraries/dockdi-ts`.
+- [x] **Resolver y validación mínima en Bun**
+  - [x] Implementar un resolver mínimo que tome el constructor y la tupla de tokens y resuelva las dependencias instanciando con `new`.
+  - [x] Validar ejecución exitosa con `bun test` y `bun x tsc --noEmit`.
+  - [x] Documentar formalmente la decisión de diseño acordada como base para la Fase 1.
 
 ---
 

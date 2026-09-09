@@ -1,6 +1,6 @@
+import { type Token, token } from "@source/token";
 import { expectTypeOf } from "expect-type";
 import { describe, expect, it } from "vitest";
-import { type Token, token } from "@source/token";
 
 interface User {
   id: string;

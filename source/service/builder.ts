@@ -58,17 +58,10 @@ export class RegistryBuilder<T> implements BindingBuilder<T> {
   };
 
   public toFactory<Args extends readonly unknown[]>(
-    factory: (...args: Args) => T,
+    factory: (...args: Args) => T | Promise<T>,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder {
     return this.bindScoped("factory", factory, tokens);
-  };
-
-  public toAsync<Args extends readonly unknown[]>(
-    factory: (...args: Args) => Promise<T> | T,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder {
-    return this.bindScoped("async", factory, tokens);
   };
 
   private bindScoped<Args extends readonly unknown[]>(

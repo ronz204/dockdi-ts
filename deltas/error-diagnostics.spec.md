@@ -13,12 +13,11 @@ Provide a dedicated, zero-dependency diagnostic error hierarchy (`DockdiError`, 
   - `CircularDependencyError` class carrying `readonly cycle: readonly Token<unknown>[]`.
   - `MissingTokenError` class carrying `readonly token: Token<unknown>`, `readonly activeStack: readonly Token<unknown>[]`, and optional `readonly suggestions?: readonly string[]`.
   - `BindingConflictError` class carrying `readonly token: Token<unknown>`.
-  - Resolution stack tracking (`activeStack`) in the resolver engine to detect cyclic dependencies before stack overflow.
+  - Resolution stack tracking (`activeStack`) in the resolver engine to detect cyclic dependencies before stack overflow across both synchronous (`get`) and asynchronous (`resolve`) executions.
   - Formatting of cycle trace strings (e.g. `Circular dependency detected: Token[A] -> Token[B] -> Token[C] -> Token[A]`).
   - Zero-dependency Levenshtein distance computation to find registered tokens with similar descriptions when a requested token is missing.
 - **Non-goals**:
-  - Asynchronous cycle detection or async stack propagation (owned by `async-resolution` in Phase 4).
-  - External logging, telemetry, or error-reporting middleware integrations (deferred to Phase 7).
+  - External logging, telemetry, or error-reporting middleware integrations (deferred to Phase 6).
 
 ## Contract
 
@@ -64,8 +63,8 @@ export class BindingConflictError extends DockdiError {
 - **Declaration isolation**: All error classes and properties specify explicit types compatible with `isolatedDeclarations: true`.
 
 ## Deferred / Open questions
-
-- Asynchronous resolution stack tracking is deferred to Phase 4.
+ 
+- None. Circular dependency detection and resolution stack tracking are implemented uniformly across both synchronous and asynchronous execution paths in Phase 3.
 
 ## Acceptance criteria
 

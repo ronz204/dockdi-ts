@@ -51,16 +51,16 @@ export interface Binding<T> {
 
 **Flow.**
 1. Initialization creates an empty token-to-binding registry and a singleton instance cache.
-2. `bind(token)` returns a builder to register class, factory, or value bindings.
-3. `get(token)` delegates to the resolver, returning the resolved instance `T` synchronously.
-4. `resolveAsync(token)` delegates to the resolver for asynchronous resolution pipelines.
+2. `bind(token)` returns a builder to register class, factory (sync or async), or value bindings.
+3. `get(token)` delegates to the resolver, returning the resolved instance `T` synchronously if the tree contains only synchronous providers; throws `AsyncBindingError` if an async factory is encountered.
+4. `resolve(token)` delegates to the resolver for universal asynchronous resolution, awaiting async dependencies and deduplicating in-flight promises for singletons.
 
 **Data shape.**
 ```typescript
 export interface Container {
   bind<T>(token: Token<T>): BindingBuilder<T>;
   get<T>(token: Token<T>): T;
-  resolveAsync<T>(token: Token<T>): Promise<T>;
+  resolve<T>(token: Token<T>): Promise<T>;
 }
 ```
 

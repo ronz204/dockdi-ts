@@ -9,13 +9,12 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | Fase | Descripción | Estado |
 |---|---|---|
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
-| **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | 🟢 Completada |
-| **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | 🟢 Completada |
-| **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | 🟢 Completada |
-| **Fase 4** | Resolución asíncrona opt-in (Async factories) | 🟢 Completada |
-| **Fase 5** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
-| **Fase 6** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
-| **Fase 7** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
+| **Fase 1** | Core container & Resolución unificada (`bind`, `resolve`, `get`, Transient, sync/async) | ⚪ Pendiente |
+| **Fase 2** | Ciclo de vida y Scopes (Singleton con deduplicación de promesas, Resolution Scope) | ⚪ Pendiente |
+| **Fase 3** | DX de errores (Ciclos con traza completa sync/async y sugerencias) | ⚪ Pendiente |
+| **Fase 4** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
+| **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
+| **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
 
 ---
 
@@ -41,93 +40,78 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ---
 
-## Fase 1 — Core Container Mínimo
+## Fase 1 — Core Container & Resolución Unificada
 
-**Objetivo**: Construir el contenedor básico de inyección de dependencias de extremo a extremo, soportando registro de bindings y resolución síncrona bajo scope `transient`.
+**Objetivo**: Construir el contenedor básico de inyección de dependencias con soporte nativo y unificado para factorías síncronas y asíncronas bajo scope `transient`, ofreciendo `container.resolve()` como método de resolución universal y `container.get()` para resoluciones sincrónicas garantizadas.
 
-- **Criterio de éxito**: Contenedor funcional con API pública `bind` y `get`, que resuelva dependencias transitivas simples y falle con errores claros cuando falte un token.
+- **Criterio de éxito**: Contenedor funcional con API pública de registro (`bind`, `toValue`, `toClass`, `toFactory` unificado para sync/async) y resolución (`resolve` y `get`), que resuelva árboles de dependencias mixtos y falle con errores claros cuando falte un token o se intente resolver una dependencia asíncrona mediante `get()`.
 
 ### Tareas
-- [x] **Estructura del Container y Registro**
-  - [x] Implementar la clase `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
-  - [x] Diseñar e implementar la API fluida de registro `container.bind(token)`.
-  - [x] Soportar binding a clase (`toClass(Constructor, tokens)`).
-  - [x] Soportar binding a valor constante (`toValue(value)`).
-  - [x] Soportar binding a fábrica síncrona (`toFactory(factoryFn, tokens)`).
-- [x] **Motor de Resolución Síncrona (`get`)**
-  - [x] Implementar `container.get(token)` con resolución recursiva de dependencias.
-  - [x] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
-  - [x] Manejar tokens no registrados lanzando un error específico con el nombre/descripción del token faltante.
-- [x] **Suite de Pruebas de la Fase 1**
-  - [x] Tests de resolución de dependencias lineales (ej. `A -> B -> C`).
-  - [x] Tests validando que múltiples llamadas a `get` con scope transient devuelven referencias distintas (`instance1 !== instance2`).
-  - [x] Tests de fallo al solicitar tokens inexistentes.
+- [ ] **Estructura del Container y Registro Unificado**
+  - [ ] Implementar la clase `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
+  - [ ] Diseñar e implementar la API fluida de registro `container.bind(token)`.
+  - [ ] Soportar binding a valor constante (`toValue(value)`).
+  - [ ] Soportar binding a clase (`toClass(Constructor, tokens)`).
+  - [ ] Soportar binding a factoría polimórfica (`toFactory(factoryFn, tokens)`), aceptando retornos tanto síncronos (`T`) como asíncronos (`Promise<T>`) de forma transparente sin métodos separados.
+- [ ] **Motor de Resolución Unificada (`resolve` y `get`)**
+  - [ ] Implementar `container.resolve(token): Promise<T>` como método universal capaz de resolver dependencias de forma recursiva, esperando promesas en cualquier punto del árbol y ejecutando clases y factorías.
+  - [ ] Implementar `container.get(token): T` síncrono para grafos estrictamente síncronos; lanza `AsyncBindingError` con sugerencia clara de usar `resolve()` si se detecta una factoría asíncrona.
+  - [ ] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
+  - [ ] Manejar tokens no registrados lanzando `MissingTokenError` con el nombre/descripción del token faltante.
+- [ ] **Suite de Pruebas de la Fase 1**
+  - [ ] Tests de resolución de dependencias lineales sincrónicas (`A -> B -> C`).
+  - [ ] Tests de resolución con factorías asíncronas mediante `container.resolve()`.
+  - [ ] Tests de resolución mixta (clases síncronas que dependen de factorías asíncronas).
+  - [ ] Tests validando que múltiples llamadas con scope transient devuelven referencias distintas (`instance1 !== instance2`).
+  - [ ] Tests verificando que `container.get()` sobre un árbol asíncrono lanza `AsyncBindingError`.
+  - [ ] Tests de fallo al solicitar tokens inexistentes.
 
 ---
 
 ## Fase 2 — Ciclo de Vida y Scopes
 
-**Objetivo**: Incorporar políticas de ciclo de vida de instancias (`singleton` y evaluar `resolution-scope`), garantizando consistencia referencial y control de memoria.
+**Objetivo**: Incorporar políticas de ciclo de vida de instancias (`singleton` y `resolution-scope`) con soporte transparente para factorías asíncronas mediante deduplicación de promesas concurrentes en vuelo.
 
-- **Criterio de éxito**: Pruebas unitarias que demuestren la preservación exacta de referencias para singletons y aislamiento entre llamadas para transient/resolution-scope.
+- **Criterio de éxito**: Pruebas unitarias que demuestren la preservación exacta de referencias para singletons (tanto síncronos como asíncronos), deduplicación de promesas concurrentes y aislamiento entre llamadas para transient/resolution-scope.
 
 ### Tareas
-- [x] **Scope Singleton**
-  - [x] Extender la API de binding para especificar scope: `.inSingletonScope()` o `.scope('singleton')`.
-  - [x] Implementar la caché de instancias singleton dentro del contenedor.
-  - [x] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
-- [x] **Evaluación e Implementación de Resolution-Scope**
-  - [x] Analizar la viabilidad y necesidad práctica de un scope acotado al árbol de una resolución (`resolution-scope` / contextual).
-  - [x] Si se aprueba: implementar contexto de resolución efímero que comparta instancias solo durante el ciclo de ejecución de un único `container.get()`.
-- [x] **Suite de Pruebas de Ciclo de Vida**
-  - [x] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos dependen del singleton `D`).
-  - [x] Tests de limpieza de memoria o reinicio de contenedor si aplica.
+- [ ] **Scope Singleton con Manejo Asíncrono**
+  - [ ] Extender la API de binding para especificar scope: `.inSingletonScope()`.
+  - [ ] Implementar la caché de instancias singleton dentro del contenedor.
+  - [ ] Implementar deduplicación de promesas en vuelo (*in-flight promise deduplication*) para factorías asíncronas en singleton scope: resoluciones concurrentes comparten la misma promesa.
+  - [ ] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
+- [ ] **Scope Resolution (Contextual)**
+  - [ ] Implementar contexto de resolución efímero que comparta instancias solo durante el ciclo de ejecución de un único `container.resolve()` o `container.get()`.
+- [ ] **Limpieza de Caché**
+  - [ ] Implementar `container.reset()` para purgar singletons cacheados y promesas pendientes sin alterar los bindings registrados.
+- [ ] **Suite de Pruebas de Ciclo de Vida**
+  - [ ] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos dependen del singleton `D`).
+  - [ ] Tests de concurrencia para singletons asíncronos verificando que la factoría se ejecuta exactamente una vez.
+  - [ ] Tests de resolution scope y tests de `container.reset()`.
 
 ---
 
 ## Fase 3 — Experiencia de Desarrollo (DX) y Diagnóstico de Errores
 
-**Objetivo**: Convertir el manejo de errores en un factor diferenciador clave de `dockdi`: detectar dependencias circulares antes de desbordar el stack y ofrecer mensajes detallados con trazas completas y sugerencias.
+**Objetivo**: Convertir el manejo de errores en un factor diferenciador clave de `dockdi`: detectar dependencias circulares antes de desbordar el stack en resoluciones síncronas y asíncronas, y ofrecer mensajes detallados con trazas completas y sugerencias.
 
-- **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded`; en su lugar, se lanza un error descriptivo que imprime la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
+- **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded` ni `UnhandledPromiseRejection`; en su lugar, se lanza un error descriptivo con la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
 
 ### Tareas
-- [x] **Detección de Dependencias Circulares**
-  - [x] Implementar pila de resolución activa (`resolutionStack`) durante la invocación recursiva de `get`.
-  - [x] Detectar presencia de un token en la pila antes de intentar resolverlo.
-  - [x] Interrumpir la ejecución inmediatamente al encontrar un ciclo.
-- [x] **Formateo de Errores y Diagnóstico**
-  - [x] Crear jerarquía de clases de error dedicadas (`CircularDependencyError`, `MissingTokenError`, `BindingConflictError`, `DockdiError`).
-  - [x] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]`.
-  - [x] En errores de token faltante, inspeccionar el registro y sugerir tokens con descripciones similares (cálculo de distancia Levenshtein).
-- [x] **Suite de Pruebas de Diagnóstico**
-  - [x] Tests de ciclos directos (`A -> B -> A`).
-  - [x] Tests de ciclos indirectos (`A -> B -> C -> D -> B`).
-  - [x] Tests verificando el texto exacto y la claridad del mensaje de error emitido.
+- [ ] **Detección de Dependencias Circulares (Sync y Async)**
+  - [ ] Implementar pila de resolución activa (`resolutionStack`) durante la invocación recursiva de `resolve` y `get`.
+  - [ ] Detectar presencia de un token en la pila antes de intentar resolverlo en ambos pipelines.
+  - [ ] Interrumpir la ejecución inmediatamente lanzando `CircularDependencyError`.
+- [ ] **Formateo de Errores y Diagnóstico**
+  - [ ] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]`.
+  - [ ] En errores de token faltante (`MissingTokenError`), inspeccionar el registro y sugerir tokens con descripciones similares (cálculo de distancia Levenshtein).
+- [ ] **Suite de Pruebas de Diagnóstico**
+  - [ ] Tests de ciclos directos (`A -> B -> A`) e indirectos (`A -> B -> C -> D -> B`) en `resolve()` y `get()`.
+  - [ ] Tests verificando el texto exacto y las sugerencias de tokens similares.
 
 ---
 
-## Fase 4 — Factorías y Resolución Asíncrona (Opt-in)
-
-**Objetivo**: Soportar resolución asíncrona cuando las dependencias dependan de factorías o inicializaciones asíncronas, protegiendo estrictamente el camino síncrono por defecto.
-
-- **Criterio de éxito**: La resolución síncrona `container.get()` continúa operando sin penalización ni contaminación de `Promise`, mientras que `container.resolveAsync()` o factorías asíncronas resuelven limpiamente mediante `Promise`.
-
-### Tareas
-- [x] **Bindings Asíncronos**
-  - [x] Soporte para factorías asíncronas (`tpAsync(asyncFn, tokens)`).
-  - [x] Tipado estático y guard en runtime (`AsyncBindingError`) que impida resolver un binding asíncrono mediante el método síncrono `get`.
-- [x] **Método de Resolución Asíncrona**
-  - [x] Implementar `container.resolveAsync(token): Promise<T>`.
-  - [x] Propagación asíncrona de dependencias con `Promise.all` y deduplicación de promesas en vuelo para singletons.
-  - [x] Preservar la detección de ciclos dentro del pipeline asíncrono (`CircularDependencyError`).
-- [x] **Suite de Pruebas Asíncronas**
-  - [x] Tests de resolución de factorías con retardo / llamadas asíncronas simuladas.
-  - [x] Tests verificando que intentar resolver un token asíncrono con `get()` síncrono lanza `AsyncBindingError` en lugar de devolver una `Promise` sin resolver.
-
----
-
-## Fase 5 — Utilidades de Testing
+## Fase 4 — Utilidades de Testing
 
 **Objetivo**: Proporcionar a los consumidores de `dockdi` facilidades ergonómicas y declarativas para sobrescribir dependencias (mocks/stubs) en suites de pruebas unitarias.
 
@@ -144,7 +128,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ---
 
-## Fase 6 — Empaquetado, Optimización y Publicación
+## Fase 5 — Empaquetado, Optimización y Publicación
 
 **Objetivo**: Preparar el paquete para su distribución en el ecosistema npm con presupuesto estricto de bundle size, cero dependencias de producción y compatibilidad universal ESM/CJS.
 
@@ -152,14 +136,14 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ### Tareas
 - [ ] **Configuración de Build Dual**
-  - [ ] Configurar script de compilación (usando Bun o rollup/esbuild ligero) para emitir ESM y CommonJS.
+  - [ ] Configurar script de compilación para emitir ESM y CommonJS.
   - [ ] Generar mapas de declaración TypeScript (`.d.ts` y `.d.cts`).
   - [ ] Configurar `exports`, `main`, `module` y `types` en `package.json`.
 - [ ] **Auditoría de Invariantes**
   - [ ] Verificar que `dependencies` en `package.json` permanezca vacío (`0` dependencias en runtime).
-  - [ ] Medir y documentar el tamaño del bundle (establecer presupuesto de bundle size, ej. < 3 KB minified).
+  - [ ] Medir y documentar el tamaño del bundle (< 3 KB minified).
 - [ ] **Documentación y Ejemplos**
-  - [ ] Redactar `README.md` público con guía de inicio rápido, ejemplos de uso y comparación conceptual con soluciones basadas en decoradores.
+  - [ ] Redactar `README.md` público con guía de inicio rápido y ejemplos de uso (sync y async).
   - [ ] Crear ejemplos funcionales listos para ejecutar.
 - [ ] **Publicación**
   - [ ] Configurar pipeline de CI/CD para pruebas y publicación automatizada.
@@ -167,7 +151,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ---
 
-## Fase 7 — Extensiones Futuras (Fuera del Alcance Inicial)
+## Fase 6 — Extensiones Futuras (Fuera del Alcance Inicial)
 
 **Objetivo**: Evaluar e incorporar características avanzadas tras la estabilización de la versión 1.0.
 

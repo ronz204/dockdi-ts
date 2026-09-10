@@ -12,7 +12,7 @@ dockdi's reason to exist is closing that specific gap: make declaring and resolv
 
 ## Scope & non-goals
 
-In scope: declaring typed tokens, registering resolution strategies against them, resolving a dependency graph from those tokens (synchronously by default, asynchronously as an explicit opt-in), governing instance lifetime via scopes, and giving actionable errors when resolution fails.
+In scope: declaring typed tokens, registering resolution strategies against them, resolving a dependency graph from those tokens (unifying synchronous and asynchronous factories via `resolve`, with synchronous convenience via `get`), governing instance lifetime via scopes, and giving actionable errors when resolution fails.
 
 Out of scope for the current version:
 - Property injection — constructor injection is the only supported mechanism.

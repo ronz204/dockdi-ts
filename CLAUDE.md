@@ -44,7 +44,7 @@ The full policy lives in `.claude/settings.json`. Read-only git/inspection comma
 
 ## Conventions
 
-Project-wide invariants (zero decorators/`reflect-metadata`, zero production dependencies, synchronous-by-default resolution with async as an explicit opt-in) are each enforced via their own file under `.claude/rules/` rather than restated here — see that directory when touching library source or the package manifest.
+Project-wide invariants (zero decorators/`reflect-metadata`, zero production dependencies, unified resolution supporting synchronous and asynchronous factories transparently) are each enforced via their own file under `.claude/rules/` rather than restated here — see that directory when touching library source or the package manifest.
 
 ---
 

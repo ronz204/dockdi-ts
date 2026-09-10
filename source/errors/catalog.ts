@@ -57,7 +57,7 @@ export class AsyncBindingError extends DockdiError {
     const lines = [
       `Cannot resolve async binding synchronously for: ${describeToken(token)}`,
       formatResolutionPath(activeStack, token),
-      `\nAction required: Use "await container.resolveAsync(...)" instead.`,
+      `\nAction required: Use "await container.resolve(...)" instead.`,
     ];
 
     super(lines.filter(Boolean).join("\n"));

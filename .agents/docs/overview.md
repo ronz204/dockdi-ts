@@ -14,8 +14,8 @@ The primary architectural goal is providing natural, type-safe dependency declar
 
 The library owns:
 - Type-safe token creation using phantom types.
-- Container registration and binding mapping.
-- Synchronous-first dependency resolution with explicit asynchronous opt-in.
+- Container registration and binding mapping supporting polymorphic sync/async factories.
+- Unified dependency resolution: universal async resolution (`resolve`) and strict synchronous execution (`get`).
 - Instance lifecycle management across predefined scopes.
 - Dependency graph traversal, circular dependency detection, and comprehensive diagnostic error reporting.
 - Dual distribution targeting ESM and CommonJS runtimes with zero external production dependencies.

@@ -1,7 +1,7 @@
 import type { Token } from "./token";
 import type { Assembler, TokensForArgs } from "./assembler";
 
-export type BindingType = "class" | "factory" | "value" | "async";
+export type BindingType = "class" | "factory" | "value";
 export type ScopeType = "transient" | "singleton" | "resolution";
 
 export interface Binding<_T = unknown> {
@@ -24,11 +24,7 @@ export interface BindingBuilder<T> {
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
   toFactory<Args extends readonly unknown[]>(
-    factory: (...args: Args) => T,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder;
-  toAsync<Args extends readonly unknown[]>(
-    factory: (...args: Args) => Promise<T> | T,
+    factory: (...args: Args) => T | Promise<T>,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
 };

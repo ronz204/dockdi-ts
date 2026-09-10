@@ -15,24 +15,23 @@ This file covers the order and philosophy behind building dockdi — what gets b
 These three are built together deliberately, not bolted on separately — dropping any one of them (e.g. accepting one reflection-based dependency "just for this one feature") undermines the reason the other two matter.
 
 ## Functional scope
-
-- Register a binding (class, factory, or fixed value) against a token, and resolve that token back into a value.
-- Govern instance lifetime via scope (at minimum transient and singleton).
-- Detect and report, with the full resolution chain, both a missing-token error and a dependency cycle.
-- Support an explicit, opt-in asynchronous resolution path without changing the synchronous default.
+ 
+- Register a binding (class, polymorphic sync/async factory, or fixed value) against a token, and resolve that token back into a value.
+- Govern instance lifetime via scope (transient, singleton with in-flight promise deduplication for async singletons, and resolution-scope).
+- Detect and report, with the full resolution chain, both a missing-token error and a dependency cycle in both sync and async pipelines.
+- Support unified resolution via universal `resolve` (Promise-based) and sync `get` (for purely synchronous trees).
 - Provide a mechanism to override/mock a binding scoped to an individual test.
 - Publish as a dual ESM/CJS build with bundled type declarations.
-
+ 
 ## Roadmap
-
-0. **Core mechanism and validation** — prototype the branded token and a minimal resolver without reflection, focused on deciding the constructor-to-token mapping mechanism. This phase is not yet complete; nothing past it should be treated as unblocked until this phase's design decision is settled.
-1. **Minimal core container** — `bind`/resolve, a single (transient) scope, basic missing-token errors, end to end.
-2. **Scopes** — add singleton and resolution-scope, with lifecycle test coverage per scope.
-3. **Error developer experience** — cycle detection with a full resolution chain, missing-token messages with suggestions (e.g. similarly-named registered tokens). Treated as a real differentiator, not an afterthought.
-4. **Async factories** — opt-in asynchronous resolution without disturbing the synchronous default path.
-5. **Testing utilities** — a binding override/mock mechanism scoped to a single test.
-6. **Packaging and publication** — dual ESM/CJS build, a bundle-size budget, public documentation, npm publish.
-7. **(Future, beyond current scope) Hierarchical containers and framework integrations** — child containers, and a native integration with a specific web framework once the core is stable.
+ 
+0. **Core mechanism and validation** — prototype the branded token and a minimal resolver without reflection, focused on deciding the constructor-to-token mapping mechanism.
+1. **Minimal core container & unified resolution** — `bind`, universal `resolve`, sync `get`, transient scope, polymorphic sync/async factories, and missing-token errors end to end.
+2. **Scopes** — add singleton (with concurrent promise deduplication for async singletons) and resolution-scope, with lifecycle test coverage per scope.
+3. **Error developer experience** — cycle detection with a full resolution chain in sync and async paths, missing-token messages with suggestions (e.g. similarly-named registered tokens).
+4. **Testing utilities** — a binding override/mock mechanism scoped to a single test.
+5. **Packaging and publication** — dual ESM/CJS build, a bundle-size budget, public documentation, npm publish.
+6. **(Future, beyond current scope) Hierarchical containers and framework integrations** — child containers, and a native integration with a specific web framework once the core is stable.
 
 ## Risks
 

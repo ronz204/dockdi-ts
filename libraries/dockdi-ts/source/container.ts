@@ -1,6 +1,6 @@
-import type { Binding, BindingBuilder } from "./binding";
-import { createBindingBuilder } from "./builder";
+import type { Binding, BindingBuilder } from "./core/binding";
 import { resolveToken, resolveTokenAsync } from "./resolver";
+import { createBindingBuilder } from "./service/builder";
 import type { Token } from "./token";
 
 export class Container {

@@ -1,12 +1,12 @@
-import type { Binding } from "./binding";
-import type { Constructor, TokenResolver, TokensForArgs } from "./constructor";
-import { instantiate } from "./constructor";
+import type { Assembler, TokenResolver, TokensForArgs } from "./core/assembler";
+import { instantiate } from "./core/assembler";
+import type { Binding } from "./core/binding";
 import {
   AsyncBindingError,
   CircularDependencyError,
-  findTokenSuggestions,
   MissingTokenError,
-} from "./errors";
+} from "./errors/catalog";
+import { findTokenSuggestions } from "./errors/suggest";
 import type { Token } from "./token";
 
 export function resolveToken<T>(
@@ -30,7 +30,7 @@ export function resolveToken<T>(
     throw new MissingTokenError(tokenKey, activeStack, suggestions);
   }
 
-  if (binding.type === "asyncFactory") {
+  if (binding.type === "async") {
     throw new AsyncBindingError(tokenKey, activeStack);
   }
 
@@ -57,7 +57,7 @@ export function resolveToken<T>(
   let instance: T;
 
   if (binding.type === "class") {
-    const target = binding.provider as Constructor<T, unknown[]>;
+    const target = binding.provider as Assembler<T, unknown[]>;
     const deps = (binding.dependencies ?? []) as TokensForArgs<unknown[]>;
     instance = instantiate(target, deps, resolve);
   } else {
@@ -130,7 +130,7 @@ export function resolveTokenAsync<T>(
 
       let instance: T;
       if (binding.type === "class") {
-        const target = binding.provider as Constructor<T, unknown[]>;
+        const target = binding.provider as Assembler<T, unknown[]>;
         instance = new target(...resolvedDeps);
       } else if (binding.type === "factory") {
         const factory = binding.provider as (...args: unknown[]) => T;

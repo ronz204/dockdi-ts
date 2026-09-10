@@ -6,6 +6,7 @@ export default defineConfig({
       "@core": "./source/core",
       "@errors": "./source/errors",
       "@service": "./source/service",
+      "@source": "./source",
     },
   },
   test: {

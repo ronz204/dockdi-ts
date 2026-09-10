@@ -6,4 +6,4 @@ export type Token<T> = symbol & {
 
 export function token<T>(description?: string): Token<T> {
   return Symbol(description) as Token<T>;
-}
+};

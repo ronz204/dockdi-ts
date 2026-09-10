@@ -4,7 +4,7 @@ import type {
   BindingType,
   ScopedBindingBuilder,
 } from "./binding";
-import { tokenAlreadyBoundError } from "./errors";
+import { BindingConflictError } from "./errors";
 import type { Token } from "./token";
 
 export function createBindingBuilder<T>(
@@ -12,7 +12,7 @@ export function createBindingBuilder<T>(
   registry: Map<Token<unknown>, Binding<unknown>>,
 ): BindingBuilder<T> {
   if (registry.has(token as Token<unknown>)) {
-    throw tokenAlreadyBoundError(token as Token<unknown>);
+    throw new BindingConflictError(token as Token<unknown>);
   }
 
   const register = (

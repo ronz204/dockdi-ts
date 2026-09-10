@@ -1,7 +1,11 @@
 import type { Binding } from "./binding";
 import type { Constructor, TokenResolver, TokensForArgs } from "./constructor";
 import { instantiate } from "./constructor";
-import { tokenNotRegisteredError } from "./errors";
+import {
+  CircularDependencyError,
+  findTokenSuggestions,
+  MissingTokenError,
+} from "./errors";
 import type { Token } from "./token";
 
 export function resolveToken<T>(
@@ -9,11 +13,20 @@ export function resolveToken<T>(
   registry: Map<Token<unknown>, Binding<unknown>>,
   singletonCache: Map<Token<unknown>, unknown>,
   resolutionContext: Map<Token<unknown>, unknown>,
+  activeStack: readonly Token<unknown>[] = [],
 ): T {
   const tokenKey = token as Token<unknown>;
+
+  const existingIndex = activeStack.indexOf(tokenKey);
+  if (existingIndex !== -1) {
+    const cyclePath = [...activeStack.slice(existingIndex), tokenKey];
+    throw new CircularDependencyError(cyclePath);
+  }
+
   const binding = registry.get(tokenKey);
   if (!binding) {
-    throw tokenNotRegisteredError(tokenKey);
+    const suggestions = findTokenSuggestions(tokenKey, registry);
+    throw new MissingTokenError(tokenKey, activeStack, suggestions);
   }
 
   if (binding.type === "value") {
@@ -31,8 +44,10 @@ export function resolveToken<T>(
     return cache.get(tokenKey) as T;
   }
 
+  const nextStack = [...activeStack, tokenKey];
+
   const resolve: TokenResolver = (dep) =>
-    resolveToken(dep, registry, singletonCache, resolutionContext);
+    resolveToken(dep, registry, singletonCache, resolutionContext, nextStack);
 
   let instance: T;
 

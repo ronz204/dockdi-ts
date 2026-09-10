@@ -14,4 +14,12 @@ export {
   type TokensForArgs,
 } from "./constructor";
 export { Container } from "./container";
+export {
+  BindingConflictError,
+  CircularDependencyError,
+  DockdiError,
+  findTokenSuggestions,
+  levenshteinDistance,
+  MissingTokenError,
+} from "./errors";
 export { type Token, token } from "./token";

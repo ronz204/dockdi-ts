@@ -11,14 +11,13 @@ Provide fine-grained lifecycle management for container bindings to govern when 
 - **Owns**:
   - `ScopedBindingBuilder` fluent chaining interface exposing `.inSingletonScope()`, `.inTransientScope()`, and `.inResolutionScope()`.
   - Integration of scope selection into `.toClass()` and `.toFactory()` registration builders.
-  - Singleton instance caching (`Map<Token<unknown>, unknown>`) bound to each `Container` instance.
-  - Concurrent in-flight `Promise` deduplication for asynchronous singleton factories during `container.resolve()` (concurrent calls share the identical pending promise reference).
-  - Ephemeral resolution context (`Map<Token<unknown>, unknown>`) created per `container.get()` or `container.resolve()` execution and discarded when resolution completes.
+  - Singleton instance caching (`Map<Token<unknown>, unknown>`) and in-flight promise deduplication (`Map<Token<unknown>, Promise<unknown>>`) bound to each `Container` instance.
+  - Ephemeral resolution context (`Map<Token<unknown>, Promise<unknown>>`) created per top-level `container.resolve()` execution and discarded when resolution completes.
   - Referential identity guarantees:
-    - `singleton`: identical reference (`===`) across all `resolve()` / `get()` invocations on the same container.
+    - `singleton`: identical reference (`===`) across all `resolve()` invocations on the same container.
     - `resolution`: identical reference (`===`) across shared dependencies within the same resolution tree, fresh instance across separate top-level calls.
     - `transient`: distinct instance (`!==`) on every resolution.
-  - Cache clearing method `container.reset()` which purges all cached singleton instances and pending promises while preserving registered bindings.
+  - Cache clearing method `container.reset()` which purges all cached singleton instances and in-flight promises while preserving registered bindings.
 - **Non-goals**:
   - Circular dependency detection with cycle path traces (owned by `error-diagnostics` in Phase 3).
   - Hierarchical container scoping or child container inheritance (deferred to Phase 6).
@@ -26,6 +25,9 @@ Provide fine-grained lifecycle management for container bindings to govern when 
 ## Contract
 
 ```typescript
+import type { Token } from "@core/token";
+import type { Assembler, TokensForArgs } from "@core/assembler";
+
 export type ScopeType = "transient" | "singleton" | "resolution";
 
 export interface ScopedBindingBuilder {
@@ -36,7 +38,7 @@ export interface ScopedBindingBuilder {
 
 export interface BindingBuilder<T> {
   toClass<Args extends readonly unknown[]>(
-    target: Constructor<T, Args>,
+    target: Assembler<T, Args>,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
   toValue(value: T): void;
@@ -48,7 +50,6 @@ export interface BindingBuilder<T> {
 
 export class Container {
   bind<T>(token: Token<T>): BindingBuilder<T>;
-  get<T>(token: Token<T>): T;
   resolve<T>(token: Token<T>): Promise<T>;
   reset(): void;
 }
@@ -59,14 +60,14 @@ export class Container {
 | Scope Policy | Within Same Resolution Tree | Across Distinct Invocations | Storage Location | Lifetime |
 |---|---|---|---|---|
 | `transient` (default) | Fresh instance per dependency path | Fresh instance per invocation | None | Garbage-collected when references drop |
-| `singleton` | Shared identical reference (`===`) | Shared identical reference (`===`) | Container instance cache | Lives until `container.reset()` or container is GC'd |
+| `singleton` | Shared identical reference (`===`) | Shared identical reference (`===`) | Container instance cache + in-flight cache | Lives until `container.reset()` or container is GC'd |
 | `resolution` | Shared identical reference (`===`) across tree | Fresh instance per invocation | Ephemeral resolution context | Discarded when root resolution completes |
 
 Constant value bindings registered via `.toValue()` inherently preserve reference equality and are unaffected by `reset()`.
 
 ## Invariants
 
-- **Singleton identity**: Successive `container.resolve()` or `container.get()` calls for a singleton-scoped token return the exact same instance reference (`a === b`).
+- **Singleton identity**: Successive `container.resolve()` calls for a singleton-scoped token return the exact same instance reference (`a === b`).
 - **Concurrent promise deduplication**: Concurrent invocations of `container.resolve(token)` for an asynchronous singleton share the exact same pending `Promise<T>` reference (`p1 === p2`), preventing duplicate asynchronous factory executions and race conditions.
 - **Resolution-scope isolation**: In a diamond graph (`A -> B, C; B -> D; C -> D`), when `D` is `resolution`-scoped, `B.d === C.d` holds within the same resolution call, but `call1.b.d !== call2.b.d` holds across calls.
 - **Container cache boundary**: Singleton caches are isolated to each `Container` instance. Two containers with identical bindings instantiate independent singletons.

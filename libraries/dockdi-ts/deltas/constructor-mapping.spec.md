@@ -15,7 +15,7 @@ Eliminate the positional fragility and silent runtime injection errors common to
   - Minimal synchronous instantiation helper (`instantiate<T, Args>(target: Constructor<T, Args>, tokens: TokensForArgs<Args>, resolve: (token: Token<unknown>) => unknown): T`) to validate executable mechanics in Phase 0.
 - **Non-goals**:
   - Container lifecycle caching or scope resolution (owned by `container-registry` and `lifecycle-scopes`).
-  - Circular dependency detection across recursive resolution trees (owned by `diagnostics`).
+  - Circular dependency detection across recursive resolution trees (owned by `error-diagnostics`).
   - Property injection or method injection (dockdi strictly constrains dependency resolution to constructor and factory arguments).
   - Runtime decorator inspection, AST parsing, or bytecode decompilation of constructor parameters.
 

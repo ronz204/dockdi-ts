@@ -18,7 +18,7 @@ Provide a lightweight, reflection-free dependency injection container that pairs
   - Missing token error reporting when resolving an unregistered token.
 - **Non-goals**:
   - Singleton caching or lifecycle scopes beyond transient (owned by `lifecycle-scopes` in Phase 2).
-  - Full resolution stack tracking, graph cycle detection, and circular dependency diagnostic traces (owned by `diagnostics` in Phase 3).
+  - Full resolution stack tracking, graph cycle detection, and circular dependency diagnostic traces (owned by `error-diagnostics` in Phase 3).
   - Asynchronous factory bindings or asynchronous resolution (`resolveAsync`) (owned by `async-resolution` in Phase 4).
   - Test overrides, container snapshots, or hierarchical child containers (owned by `testing-utils` in Phase 5 and Phase 7).
 
@@ -76,7 +76,7 @@ export class Container {
 ## Deferred / Open questions
 
 - Lifecycle caching (`singleton`, `resolution-scope`) is deferred to Phase 2 (`lifecycle-scopes`).
-- Dedicated error class hierarchies (`MissingTokenError`, `BindingConflictError`, `CircularDependencyError`) will be fully implemented in Phase 3 (`diagnostics`).
+- Dedicated error class hierarchies (`MissingTokenError`, `BindingConflictError`, `CircularDependencyError`) will be fully implemented in Phase 3 (`error-diagnostics`).
 
 ## Acceptance criteria
 

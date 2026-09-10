@@ -35,7 +35,7 @@ All development workflows operate through Bun within the target package director
 - Dependency injection is strictly token-driven via branded phantom types (`Token<T>`); decorators (`@inject`) and `reflect-metadata` are prohibited.
 - Resolution execution is synchronous by default; asynchronous resolution is explicit and opt-in.
 - Published library code maintains zero runtime dependencies.
-- Changes to knowledge-base files under `.agents/` or delta contracts under `libraries/*/deltas/` route through `archivist` per `.agents/rules/delta-artifacts.md`.
+- Changes to knowledge-base files under `.agents/` or delta contracts under `libraries/*/deltas/` route through `archivist` per `.agents/rules/kb-edit-routing.md`.
 
 ---
 

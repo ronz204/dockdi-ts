@@ -19,7 +19,7 @@ Provide fine-grained lifecycle management for container bindings to govern when 
     - `transient`: distinct instance (`!==`) on every resolution.
   - Cache clearing method `container.reset()` which purges all cached singleton instances while preserving registered bindings.
 - **Non-goals**:
-  - Circular dependency detection with cycle path traces (owned by `diagnostics` in Phase 3).
+  - Circular dependency detection with cycle path traces (owned by `error-diagnostics` in Phase 3).
   - Asynchronous lifecycle scoping for async factories (owned by `async-resolution` in Phase 4).
   - Hierarchical container scoping or child container inheritance (deferred to Phase 7).
 

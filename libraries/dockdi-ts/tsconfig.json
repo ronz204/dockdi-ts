@@ -31,8 +31,6 @@
       "@core/*": ["./source/core/*"],
       "@errors/*": ["./source/errors/*"],
       "@service/*": ["./source/service/*"],
-
-      "@testing/*": ["./testing/*"]
     }
   },
   "include": ["source", "testing"],

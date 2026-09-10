@@ -3,12 +3,13 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@source": "./source",
-      "@testing": "./testing",
+      "@core": "./source/core",
+      "@errors": "./source/errors",
+      "@service": "./source/service",
     },
   },
   test: {
-    include: ["source/**/*.test.ts", "testing/**/*.test.ts"],
+    include: ["testing/**/*.test.ts"],
     passWithNoTests: true,
   },
 });

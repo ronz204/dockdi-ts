@@ -30,7 +30,7 @@
     "paths": {
       "@core/*": ["./source/core/*"],
       "@errors/*": ["./source/errors/*"],
-      "@service/*": ["./source/service/*"],
+      "@service/*": ["./source/service/*"]
     }
   },
   "include": ["source", "testing"],

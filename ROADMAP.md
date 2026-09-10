@@ -9,9 +9,9 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | Fase | Descripción | Estado |
 |---|---|---|
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
-| **Fase 1** | Core container & Resolución unificada (`bind`, `resolve`, `get`, Transient, sync/async) | ⚪ Pendiente |
-| **Fase 2** | Ciclo de vida y Scopes (Singleton con deduplicación de promesas, Resolution Scope) | ⚪ Pendiente |
-| **Fase 3** | DX de errores (Ciclos con traza completa sync/async y sugerencias) | ⚪ Pendiente |
+| **Fase 1** | Core container & Resolución unificada (`bind`, `resolve`, Transient, sync/async) | 🟢 Completada |
+| **Fase 2** | Ciclo de vida y Scopes (Singleton con deduplicación de promesas, Resolution Scope) | 🟡 En progreso (40%) |
+| **Fase 3** | DX de errores (Ciclos con traza completa sync/async y sugerencias) | 🟡 En progreso (85%) |
 | **Fase 4** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
 | **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
 | **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
@@ -26,45 +26,44 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ### Tareas
 - [x] **Diseño del Branded Token (`Token<T>`)**
-  - [x] Definir el tipo phantom sobre `symbol` (`unique symbol` brand no exportado a runtime).
+  - [x] Definir el tipo phantom sobre `symbol` (`unique symbol` brand no exportado a runtime en `source/core/token.ts`).
   - [x] Implementar la función creadora `token<T>(description?: string): Token<T>`.
-  - [x] Escribir tests de tipado estático verificando que dos tokens con tipos incompatibles (`Token<A>` vs `Token<B>`) no sean asignables entre sí a nivel de TypeScript.
+  - [x] Validar tipado estático verificando que dos tokens con tipos incompatibles (`Token<A>` vs `Token<B>`) no sean asignables entre sí a nivel de TypeScript.
 - [x] **Investigación y prototipado del mapeo Constructor ↔ Tokens**
   - [x] Explorar enfoques de asociación: tupla tipada vinculada a la clase vs. helper constructor tipado vs. inferencia por función factoría.
   - [x] Evaluar seguridad frente al gap de Brandi (garantizar en compile-time que el orden y tipo de los tokens correspondan exactamente a los parámetros del constructor).
-  - [x] Prototipar la sintaxis elegida en un archivo de prueba en `libraries/dockdi-ts`.
+  - [x] Implementar función de ensamblaje tipado `instantiate(target, tokens, resolve)` en `source/core/assembler.ts`.
 - [x] **Resolver y validación mínima en Bun**
-  - [x] Implementar un resolver mínimo que tome el constructor y la tupla de tokens y resuelva las dependencias instanciando con `new`.
-  - [x] Validar ejecución exitosa con `bun test` y `bun x tsc --noEmit`.
+  - [x] Implementar resolver funcional que tome constructor y tupla de tokens y resuelva dependencias instanciando con `new`.
+  - [x] Validar ejecución exitosa con `bun x tsc --noEmit`.
   - [x] Documentar formalmente la decisión de diseño acordada como base para la Fase 1.
 
 ---
 
 ## Fase 1 — Core Container & Resolución Unificada
 
-**Objetivo**: Construir el contenedor básico de inyección de dependencias con soporte nativo y unificado para factorías síncronas y asíncronas bajo scope `transient`, ofreciendo `container.resolve()` como método de resolución universal y `container.get()` para resoluciones sincrónicas garantizadas.
+**Objetivo**: Construir el contenedor básico de inyección de dependencias con soporte nativo y unificado para factorías síncronas y asíncronas bajo scope `transient`, ofreciendo `container.resolve()` como método de resolución universal.
 
-- **Criterio de éxito**: Contenedor funcional con API pública de registro (`bind`, `toValue`, `toClass`, `toFactory` unificado para sync/async) y resolución (`resolve` y `get`), que resuelva árboles de dependencias mixtos y falle con errores claros cuando falte un token o se intente resolver una dependencia asíncrona mediante `get()`.
+- **Criterio de éxito**: Contenedor funcional con API pública de registro (`bind`, `toValue`, `toClass`, `toFactory` unificado para sync/async) y resolución (`resolve`), que resuelva árboles de dependencias mixtos y falle con errores claros cuando falte un token o se detecte una dependencia circular.
 
 ### Tareas
-- [ ] **Estructura del Container y Registro Unificado**
-  - [ ] Implementar la clase `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
-  - [ ] Diseñar e implementar la API fluida de registro `container.bind(token)`.
-  - [ ] Soportar binding a valor constante (`toValue(value)`).
-  - [ ] Soportar binding a clase (`toClass(Constructor, tokens)`).
-  - [ ] Soportar binding a factoría polimórfica (`toFactory(factoryFn, tokens)`), aceptando retornos tanto síncronos (`T`) como asíncronos (`Promise<T>`) de forma transparente sin métodos separados.
-- [ ] **Motor de Resolución Unificada (`resolve` y `get`)**
-  - [ ] Implementar `container.resolve(token): Promise<T>` como método universal capaz de resolver dependencias de forma recursiva, esperando promesas en cualquier punto del árbol y ejecutando clases y factorías.
-  - [ ] Implementar `container.get(token): T` síncrono para grafos estrictamente síncronos; lanza `AsyncBindingError` con sugerencia clara de usar `resolve()` si se detecta una factoría asíncrona.
-  - [ ] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
-  - [ ] Manejar tokens no registrados lanzando `MissingTokenError` con el nombre/descripción del token faltante.
-- [ ] **Suite de Pruebas de la Fase 1**
-  - [ ] Tests de resolución de dependencias lineales sincrónicas (`A -> B -> C`).
-  - [ ] Tests de resolución con factorías asíncronas mediante `container.resolve()`.
-  - [ ] Tests de resolución mixta (clases síncronas que dependen de factorías asíncronas).
-  - [ ] Tests validando que múltiples llamadas con scope transient devuelven referencias distintas (`instance1 !== instance2`).
-  - [ ] Tests verificando que `container.get()` sobre un árbol asíncrono lanza `AsyncBindingError`.
-  - [ ] Tests de fallo al solicitar tokens inexistentes.
+- [x] **Estructura del Registro Unificado (Completada en `source/service/builder.ts`)**
+  - [x] Diseñar e implementar la API fluida de registro `RegistryBuilder<T>` (`source/service/builder.ts`).
+  - [x] Soportar binding a valor constante (`toValue(value)`).
+  - [x] Soportar binding a clase (`toClass(Constructor, tokens)`).
+  - [x] Soportar binding a factoría polimórfica (`toFactory(factoryFn, tokens)`), aceptando retornos tanto síncronos (`T`) como asíncronos (`Promise<T>`) de forma transparente sin métodos separados.
+  - [x] Prevención de re-binding lanzando `BindingConflictError` al duplicar registro de un token.
+- [x] **Fachada del Container y Motor de Resolución (`container.ts` y `resolver.ts`)**
+  - [x] Implementar la clase fachada `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
+  - [x] Implementar `container.resolve(token): Promise<T>` como método universal capaz de resolver dependencias de forma recursiva, esperando promesas en cualquier punto del árbol y ejecutando clases y factorías.
+  - [x] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
+  - [x] Manejar tokens no registrados lanzando `MissingTokenError` con sugerencias de tokens similares.
+- [x] **Suite de Pruebas de la Fase 1**
+  - [x] Tests de resolución de dependencias lineales sincrónicas (`A -> B -> C`).
+  - [x] Tests de resolución con factorías asíncronas mediante `container.resolve()`.
+  - [x] Tests de resolución mixta (clases síncronas que dependen de factorías asíncronas).
+  - [x] Tests validando que múltiples llamadas con scope transient devuelven referencias distintas (`instance1 !== instance2`).
+  - [x] Tests de fallo al solicitar tokens inexistentes.
 
 ---
 
@@ -76,8 +75,8 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ### Tareas
 - [ ] **Scope Singleton con Manejo Asíncrono**
-  - [ ] Extender la API de binding para especificar scope: `.inSingletonScope()`.
-  - [ ] Implementar la caché de instancias singleton dentro del contenedor.
+  - [x] Extender la API de binding para encadenar scopes: `.inSingletonScope()`, `.inTransientScope()`, `.inResolutionScope()` (`BindingRecord` en `source/service/builder.ts`).
+  - [ ] Implementar la caché de instancias singleton dentro del contenedor (`singletonCache`).
   - [ ] Implementar deduplicación de promesas en vuelo (*in-flight promise deduplication*) para factorías asíncronas en singleton scope: resoluciones concurrentes comparten la misma promesa.
   - [ ] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
 - [ ] **Scope Resolution (Contextual)**
@@ -98,13 +97,14 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded` ni `UnhandledPromiseRejection`; en su lugar, se lanza un error descriptivo con la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
 
 ### Tareas
-- [ ] **Detección de Dependencias Circulares (Sync y Async)**
+- [x] **Jerarquía y Utilidades de Diagnóstico (Completada en `source/errors/`)**
+  - [x] Crear jerarquía de clases de error dedicadas (`DockdiError`, `BindingConflictError`, `CircularDependencyError`, `MissingTokenError`, `AsyncBindingError` en `source/errors/catalog.ts`).
+  - [x] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]` (`source/errors/helpers.ts`).
+  - [x] En errores de token faltante (`MissingTokenError`), inspeccionar el registro y sugerir tokens con descripciones similares mediante cálculo de distancia Levenshtein (`source/errors/suggest.ts`).
+- [ ] **Integración en Motor de Resolución**
   - [ ] Implementar pila de resolución activa (`resolutionStack`) durante la invocación recursiva de `resolve` y `get`.
-  - [ ] Detectar presencia de un token en la pila antes de intentar resolverlo en ambos pipelines.
+  - [ ] Detectar presencia de un token en la pila antes de intentar resolverlo en ambos pipelines (sync y async).
   - [ ] Interrumpir la ejecución inmediatamente lanzando `CircularDependencyError`.
-- [ ] **Formateo de Errores y Diagnóstico**
-  - [ ] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]`.
-  - [ ] En errores de token faltante (`MissingTokenError`), inspeccionar el registro y sugerir tokens con descripciones similares (cálculo de distancia Levenshtein).
 - [ ] **Suite de Pruebas de Diagnóstico**
   - [ ] Tests de ciclos directos (`A -> B -> A`) e indirectos (`A -> B -> C -> D -> B`) en `resolve()` y `get()`.
   - [ ] Tests verificando el texto exacto y las sugerencias de tokens similares.

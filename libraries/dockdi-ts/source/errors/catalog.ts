@@ -1,5 +1,9 @@
 import type { Token } from "../token";
-import { describeToken, formatTokenStack } from "./helpers";
+import {
+  describeToken,
+  formatTokenChain,
+  formatResolutionPath,
+} from "./helpers";
 
 export class DockdiError extends Error {
   override readonly name: string = "DockdiError";
@@ -17,41 +21,45 @@ export class CircularDependencyError extends DockdiError {
   override readonly name: string = "CircularDependencyError";
 
   constructor(readonly cycle: readonly Token<unknown>[]) {
-    super(`Circular dependency detected: ${formatTokenStack(cycle)}`);
+    super(`Circular dependency detected: ${formatTokenChain(cycle)}`);
   };
 };
 
 export class MissingTokenError extends DockdiError {
-  override readonly name: string = "MissingTokenError";
+  override readonly name = "MissingTokenError";
 
   constructor(
     readonly token: Token<unknown>,
     readonly activeStack: readonly Token<unknown>[],
     readonly suggestions: readonly string[] | undefined = undefined,
   ) {
-    const pathInfo =
-      activeStack.length > 0
-        ? ` (requested by ${formatTokenStack(activeStack)})`
-        : "";
-    const suggestionsInfo =
-      suggestions && suggestions.length > 0
-        ? `. Did you mean: ${suggestions.map((s) => `Token[${s}]`).join(", ")}?`
-        : "";
-    super(`Token not registered: ${describeToken(token)}${pathInfo}${suggestionsInfo}`);
+    const lines = [
+      `Token not registered: ${describeToken(token)}`,
+      formatResolutionPath(activeStack, token),
+    ];
+
+    if (suggestions?.length) {
+      const formattedSuggestions = suggestions.map((s) => `Token[${s}]`).join(", ");
+      lines.push(`\nDid you mean: ${formattedSuggestions}?`);
+    };
+
+    super(lines.filter(Boolean).join("\n"));
   };
 };
 
 export class AsyncBindingError extends DockdiError {
-  override readonly name: string = "AsyncBindingError";
+  override readonly name = "AsyncBindingError";
 
   constructor(
     readonly token: Token<unknown>,
     readonly activeStack: readonly Token<unknown>[],
   ) {
-    const pathInfo =
-      activeStack.length > 0
-        ? ` (requested by ${formatTokenStack(activeStack)})`
-        : "";
-    super(`Cannot resolve async binding synchronously for ${describeToken(token)}${pathInfo}. Use container.resolveAsync() instead.`);
+    const lines = [
+      `Cannot resolve async binding synchronously for: ${describeToken(token)}`,
+      formatResolutionPath(activeStack, token),
+      `\nAction required: Use "await container.resolveAsync(...)" instead.`,
+    ];
+
+    super(lines.filter(Boolean).join("\n"));
   };
 };

@@ -12,7 +12,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | **Fase 1** | Core container & Resolución unificada (`bind`, `resolve`, Transient, sync/async) | 🟢 Completada |
 | **Fase 2** | Ciclo de vida y Scopes (Singleton con deduplicación de promesas, Resolution Scope) | 🟢 Completada |
 | **Fase 3** | DX de errores (Ciclos con traza completa sync/async y sugerencias) | 🟢 Completada |
-| **Fase 4** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
+| **Fase 4** | Utilidades de testing (Mocking y Overrides) | 🟢 Completada |
 | **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
 | **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
 
@@ -118,13 +118,13 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Los desarrolladores pueden crear snapshots, clonar contenedores o sobrescribir bindings puntuales de forma aislada por test sin contaminar el contenedor original.
 
 ### Tareas
-- [ ] **Mecanismo de Overrides / Mocks**
-  - [ ] Diseñar API de sobreescritura (ej. `container.override(token).toValue(mock)` o `container.createChild()` acotado a pruebas).
-  - [ ] Implementar restauración de bindings (`restore()` o `snapshot()`).
-  - [ ] Garantizar que las sobreescrituras invaliden adecuadamente las cachés de singleton afectadas.
-- [ ] **Suite de Pruebas para Testing Utilities**
-  - [ ] Tests de aislamiento verificando que un override en un test no afecte a resoluciones en tests posteriores.
-  - [ ] Tests de sustitución de dependencias anidadas profundas por un mock.
+- [x] **Mecanismo de Overrides / Mocks**
+  - [x] Diseñar API de sobreescritura (ej. `container.override(token).toValue(mock)` o `container.createChild()` acotado a pruebas).
+  - [x] Implementar restauración de bindings (`restore()` o `snapshot()`).
+  - [x] Garantizar que las sobreescrituras invaliden adecuadamente las cachés de singleton afectadas.
+- [x] **Suite de Pruebas para Testing Utilities**
+  - [x] Tests de aislamiento verificando que un override en un test no afecte a resoluciones en tests posteriores.
+  - [x] Tests de sustitución de dependencias anidadas profundas por un mock.
 
 ---
 

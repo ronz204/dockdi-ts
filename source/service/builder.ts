@@ -37,9 +37,10 @@ export class RegistryBuilder<T> implements BindingBuilder<T> {
   constructor(
     token: Token<T>,
     private readonly registry: Map<Token<unknown>, Binding<unknown>>,
+    allowOverride: boolean = false,
   ) {
     this.tokenKey = token as Token<unknown>;
-    if (this.registry.has(this.tokenKey)) {
+    if (!allowOverride && this.registry.has(this.tokenKey)) {
       throw new BindingConflictError(this.tokenKey);
     }
   }

@@ -32,6 +32,12 @@ export class SingletonStorage {
     return task;
   }
 
+  public invalidate(token: Token<unknown>): void {
+    const tokenKey = token as Token<unknown>;
+    this.instances.delete(tokenKey);
+    this.inFlight.delete(tokenKey);
+  }
+
   public clear(): void {
     this.instances.clear();
     this.inFlight.clear();

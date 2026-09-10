@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     // Environment & Target
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "target": "ES2022",
+    "types": ["bun"],
     "module": "Preserve",
     "moduleDetection": "force",
     "allowJs": false,
@@ -28,9 +29,14 @@
 
     // Path aliases
     "paths": {
+      "dockdi": ["./source/index.ts"],
       "@core/*": ["./source/core/*"],
       "@errors/*": ["./source/errors/*"],
-      "@service/*": ["./source/service/*"]
+      "@service/*": ["./source/service/*"],
+
+      "@bench/*": ["./testing/bench/*"],
+      "@helpers/*": ["./testing/helpers/*"],
+      "@integration/*": ["./testing/integration/*"]
     }
   },
   "include": ["source", "testing"],

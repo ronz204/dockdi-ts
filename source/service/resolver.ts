@@ -25,11 +25,11 @@ export class Resolver {
     private readonly singletonStorage: SingletonStorage,
   ) {}
 
-  public resolve<T>(token: Token<T>): Promise<T> {
-    return this.resolveWithSession(token, new ResolutionSession());
+  public async resolve<T>(token: Token<T>): Promise<T> {
+    return await this.resolveWithSession(token, new ResolutionSession());
   }
 
-  private resolveWithSession<T>(
+  private async resolveWithSession<T>(
     token: Token<T>,
     session: ResolutionSession,
   ): Promise<T> {

@@ -1,6 +1,7 @@
 import type { Token } from "./token";
 
-export type Assembler<T = unknown,
+export type Assembler<
+  T = unknown,
   Args extends readonly unknown[] = readonly unknown[],
 > = new (...args: Args) => T;
 
@@ -16,4 +17,4 @@ export function instantiate<T, Args extends readonly unknown[]>(
 ): T {
   const resolved = (tokens as readonly Token<unknown>[]).map((t) => resolve(t));
   return new target(...(resolved as unknown as Args));
-};
+}

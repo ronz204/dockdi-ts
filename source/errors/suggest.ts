@@ -17,26 +17,26 @@ export function levenshteinDistance(a: string, b: string): number {
     for (let column = 1; column <= b.length; column++) {
       const substitutionCost = a[row - 1] === b[column - 1] ? 0 : 1;
       const insertion = (currentRow[column - 1] ?? 0) + 1;
-      
+
       const deletion = (previousRow[column] ?? 0) + 1;
       const substitution = (previousRow[column - 1] ?? 0) + substitutionCost;
       currentRow.push(Math.min(insertion, deletion, substitution));
-    };
+    }
 
     previousRow = currentRow;
-  };
+  }
 
   return previousRow[b.length] ?? 0;
-};
+}
 
 interface SuggestionCandidate {
   readonly description: string;
   readonly distance: number;
-};
+}
 
 function suggestionThreshold(description: string): number {
   return Math.max(3, Math.floor(description.length / 2));
-};
+}
 
 function registeredDescriptions(
   registry: Map<Token<unknown>, Binding<unknown>>,
@@ -48,11 +48,11 @@ function registeredDescriptions(
     const description = registeredToken.description;
     if (description && description !== excluding) {
       descriptions.push(description);
-    };
-  };
+    }
+  }
 
   return descriptions;
-};
+}
 
 export function findTokenSuggestions(
   missingToken: Token<unknown>,
@@ -64,8 +64,10 @@ export function findTokenSuggestions(
   const threshold = suggestionThreshold(missingDescription);
 
   const candidates: SuggestionCandidate[] = registeredDescriptions(
-    registry, missingDescription,
-  ).map((description) => ({
+    registry,
+    missingDescription,
+  )
+    .map((description) => ({
       description,
       distance: levenshteinDistance(
         missingDescription.toLowerCase(),
@@ -78,4 +80,4 @@ export function findTokenSuggestions(
   return candidates.length > 0
     ? candidates.map((candidate) => candidate.description)
     : undefined;
-};
+}

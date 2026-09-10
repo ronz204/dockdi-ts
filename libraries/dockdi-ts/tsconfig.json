@@ -28,7 +28,10 @@
 
     // Path aliases
     "paths": {
-      "@source/*": ["./source/*"],
+      "@core/*": ["./source/core/*"],
+      "@errors/*": ["./source/errors/*"],
+      "@service/*": ["./source/service/*"],
+
       "@testing/*": ["./testing/*"]
     }
   },

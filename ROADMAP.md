@@ -11,8 +11,8 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
 | **Fase 1** | Core container mínimo (`bind`/`get`, Transient) | 🟢 Completada |
 | **Fase 2** | Ciclo de vida y Scopes (Singleton, Resolution Scope) | 🟢 Completada |
-| **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | ⚪ Pendiente |
-| **Fase 4** | Resolución asíncrona opt-in (Async factories) | ⚪ Pendiente |
+| **Fase 3** | DX de errores (Ciclos con traza completa y sugerencias) | 🟢 Completada |
+| **Fase 4** | Resolución asíncrona opt-in (Async factories) | 🟢 Completada |
 | **Fase 5** | Utilidades de testing (Mocking y Overrides) | ⚪ Pendiente |
 | **Fase 6** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
 | **Fase 7** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
@@ -92,18 +92,18 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded`; en su lugar, se lanza un error descriptivo que imprime la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
 
 ### Tareas
-- [ ] **Detección de Dependencias Circulares**
-  - [ ] Implementar pila de resolución activa (`resolutionStack`) durante la invocación recursiva de `get`.
-  - [ ] Detectar presencia de un token en la pila antes de intentar resolverlo.
-  - [ ] Interrumpir la ejecución inmediatamente al encontrar un ciclo.
-- [ ] **Formateo de Errores y Diagnóstico**
-  - [ ] Crear jerarquía de clases de error dedicadas (`CircularDependencyError`, `MissingTokenError`, `InvalidBindingError`).
-  - [ ] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]`.
-  - [ ] En errores de token faltante, inspeccionar el registro y sugerir tokens con descripciones similares (cálculo de distancia o coincidencia de nombres).
-- [ ] **Suite de Pruebas de Diagnóstico**
-  - [ ] Tests de ciclos directos (`A -> B -> A`).
-  - [ ] Tests de ciclos indirectos (`A -> B -> C -> D -> B`).
-  - [ ] Tests verificando el texto exacto y la claridad del mensaje de error emitido.
+- [x] **Detección de Dependencias Circulares**
+  - [x] Implementar pila de resolución activa (`resolutionStack`) durante la invocación recursiva de `get`.
+  - [x] Detectar presencia de un token en la pila antes de intentar resolverlo.
+  - [x] Interrumpir la ejecución inmediatamente al encontrar un ciclo.
+- [x] **Formateo de Errores y Diagnóstico**
+  - [x] Crear jerarquía de clases de error dedicadas (`CircularDependencyError`, `MissingTokenError`, `BindingConflictError`, `DockdiError`).
+  - [x] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]`.
+  - [x] En errores de token faltante, inspeccionar el registro y sugerir tokens con descripciones similares (cálculo de distancia Levenshtein).
+- [x] **Suite de Pruebas de Diagnóstico**
+  - [x] Tests de ciclos directos (`A -> B -> A`).
+  - [x] Tests de ciclos indirectos (`A -> B -> C -> D -> B`).
+  - [x] Tests verificando el texto exacto y la claridad del mensaje de error emitido.
 
 ---
 
@@ -114,16 +114,16 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: La resolución síncrona `container.get()` continúa operando sin penalización ni contaminación de `Promise`, mientras que `container.resolveAsync()` o factorías asíncronas resuelven limpiamente mediante `Promise`.
 
 ### Tareas
-- [ ] **Bindings Asíncronos**
-  - [ ] Soporte para factorías asíncronas (`toAsyncFactory(asyncFn, tokens)`).
-  - [ ] Tipado estático que impida resolver un binding asíncrono mediante el método síncrono `get`.
-- [ ] **Método de Resolución Asíncrona**
-  - [ ] Implementar `container.resolveAsync(token): Promise<T>`.
-  - [ ] Propagación asíncrona de dependencias (resolución en paralelo de argumentos independientes con `Promise.all` cuando sea seguro).
-  - [ ] Preservar la detección de ciclos dentro del pipeline asíncrono.
-- [ ] **Suite de Pruebas Asíncronas**
-  - [ ] Tests de resolución de factorías con retardo / llamadas asíncronas simuladas.
-  - [ ] Tests verificando que intentar resolver un token asíncrono con `get()` síncrono lanza un error explicativo en lugar de devolver una `Promise` sin resolver.
+- [x] **Bindings Asíncronos**
+  - [x] Soporte para factorías asíncronas (`tpAsync(asyncFn, tokens)`).
+  - [x] Tipado estático y guard en runtime (`AsyncBindingError`) que impida resolver un binding asíncrono mediante el método síncrono `get`.
+- [x] **Método de Resolución Asíncrona**
+  - [x] Implementar `container.resolveAsync(token): Promise<T>`.
+  - [x] Propagación asíncrona de dependencias con `Promise.all` y deduplicación de promesas en vuelo para singletons.
+  - [x] Preservar la detección de ciclos dentro del pipeline asíncrono (`CircularDependencyError`).
+- [x] **Suite de Pruebas Asíncronas**
+  - [x] Tests de resolución de factorías con retardo / llamadas asíncronas simuladas.
+  - [x] Tests verificando que intentar resolver un token asíncrono con `get()` síncrono lanza `AsyncBindingError` en lugar de devolver una `Promise` sin resolver.
 
 ---
 

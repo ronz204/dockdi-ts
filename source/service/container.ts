@@ -7,7 +7,10 @@ import { Resolver } from "@service/resolver";
 export class Container {
   private readonly storage: SingletonStorage = new SingletonStorage();
   private readonly registry: Map<Token<unknown>, Binding<unknown>> = new Map();
-  private readonly resolver: Resolver = new Resolver(this.registry, this.storage);
+  private readonly resolver: Resolver = new Resolver(
+    this.registry,
+    this.storage,
+  );
 
   public bind<T>(token: Token<T>): BindingBuilder<T> {
     return new RegistryBuilder(token, this.registry);

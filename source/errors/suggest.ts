@@ -1,7 +1,7 @@
 import type { Binding } from "@core/binding";
 import type { Token } from "@core/token";
 
-export function levenshteinDistance(a: string, b: string): number {
+function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;

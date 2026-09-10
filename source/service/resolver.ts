@@ -5,7 +5,7 @@ import { CircularDependencyError, MissingTokenError } from "@errors/catalog";
 import { findTokenSuggestions } from "@errors/suggest";
 import { ResolutionStorage, type SingletonStorage } from "./caching";
 
-export class ResolutionSession {
+class ResolutionSession {
   constructor(
     public readonly activeStack: readonly Token<unknown>[] = [],
     public readonly resolutionStorage: ResolutionStorage = new ResolutionStorage(),
@@ -25,9 +25,13 @@ export class Resolver {
     private readonly singletonStorage: SingletonStorage,
   ) {}
 
-  public resolve<T>(
+  public resolve<T>(token: Token<T>): Promise<T> {
+    return this.resolveWithSession(token, new ResolutionSession());
+  }
+
+  private resolveWithSession<T>(
     token: Token<T>,
-    session: ResolutionSession = new ResolutionSession(),
+    session: ResolutionSession,
   ): Promise<T> {
     const tokenKey = token as Token<unknown>;
 
@@ -70,7 +74,7 @@ export class Resolver {
     const nextSession = session.push(tokenKey);
     const dependencies = binding.dependencies ?? [];
     const resolvedArgs = await Promise.all(
-      dependencies.map((dep) => this.resolve(dep, nextSession)),
+      dependencies.map((dep) => this.resolveWithSession(dep, nextSession)),
     );
 
     if (binding.type === "class") {

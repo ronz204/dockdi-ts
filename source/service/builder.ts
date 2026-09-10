@@ -9,9 +9,7 @@ import type {
 import type { Token } from "@core/token";
 import { BindingConflictError } from "@errors/catalog";
 
-export class BindingRecord<T = unknown>
-  implements Binding<T>, ScopedBindingBuilder
-{
+class BindingRecord<T = unknown> implements Binding<T>, ScopedBindingBuilder {
   public scope: ScopeType = "transient";
 
   constructor(

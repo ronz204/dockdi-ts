@@ -48,20 +48,3 @@ export class MissingTokenError extends DockdiError {
     super(lines.filter(Boolean).join("\n"));
   }
 }
-
-export class AsyncBindingError extends DockdiError {
-  override readonly name = "AsyncBindingError";
-
-  constructor(
-    readonly token: Token<unknown>,
-    readonly activeStack: readonly Token<unknown>[],
-  ) {
-    const lines = [
-      `Cannot resolve async binding synchronously for: ${describeToken(token)}`,
-      formatResolutionPath(activeStack, token),
-      `\nAction required: Use "await container.resolve(...)" instead.`,
-    ];
-
-    super(lines.filter(Boolean).join("\n"));
-  }
-}

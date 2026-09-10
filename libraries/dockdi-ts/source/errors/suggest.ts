@@ -1,5 +1,5 @@
-import type { Binding } from "../binding";
-import type { Token } from "../token";
+import type { Binding } from "../core/binding";
+import type { Token } from "../core/token";
 
 export function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;

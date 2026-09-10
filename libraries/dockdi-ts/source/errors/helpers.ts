@@ -1,4 +1,4 @@
-import type { Token } from "../token";
+import type { Token } from "../core/token";
 
 export function describeToken(token: Token<unknown>): string {
   return token.description ? `Token[${token.description}]` : token.toString();

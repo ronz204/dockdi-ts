@@ -1,5 +1,5 @@
 import type { Token } from "./token";
-import type { Constructor, TokensForArgs } from "./constructor";
+import type { Constructor, TokensForArgs } from "../constructor";
 
 export type BindingType = "class" | "factory" | "value" | "async";
 export type ScopeType = "transient" | "singleton" | "resolution";

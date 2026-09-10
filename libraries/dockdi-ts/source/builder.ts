@@ -56,5 +56,9 @@ export function createBindingBuilder<T>(
       createScopedBuilder(
         register("factory", factory, tokens as readonly Token<unknown>[]),
       ),
+    toAsyncFactory: (factory, tokens): ScopedBindingBuilder =>
+      createScopedBuilder(
+        register("asyncFactory", factory, tokens as readonly Token<unknown>[]),
+      ),
   };
 }

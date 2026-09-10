@@ -1,7 +1,7 @@
 import type { Constructor, TokensForArgs } from "./constructor";
 import type { Token } from "./token";
 
-export type BindingType = "class" | "factory" | "value";
+export type BindingType = "class" | "factory" | "value" | "asyncFactory";
 export type ScopeType = "transient" | "singleton" | "resolution";
 
 export interface Binding<_T = unknown> {
@@ -25,6 +25,10 @@ export interface BindingBuilder<T> {
   toValue(value: T): void;
   toFactory<Args extends readonly unknown[]>(
     factory: (...args: Args) => T,
+    tokens: TokensForArgs<Args>,
+  ): ScopedBindingBuilder;
+  toAsyncFactory<Args extends readonly unknown[]>(
+    factory: (...args: Args) => Promise<T> | T,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
 }

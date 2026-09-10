@@ -51,6 +51,23 @@ export class MissingTokenError extends DockdiError {
   }
 }
 
+export class AsyncBindingError extends DockdiError {
+  override readonly name: string = "AsyncBindingError";
+
+  constructor(
+    readonly token: Token<unknown>,
+    readonly activeStack: readonly Token<unknown>[],
+  ) {
+    const pathInfo =
+      activeStack.length > 0
+        ? ` (requested by ${formatTokenStack(activeStack)})`
+        : "";
+    super(
+      `Cannot resolve async binding synchronously for ${describeToken(token)}${pathInfo}. Use container.resolveAsync() instead.`,
+    );
+  }
+}
+
 export function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;
   if (a.length === 0) return b.length;

@@ -15,6 +15,7 @@ export {
 } from "./constructor";
 export { Container } from "./container";
 export {
+  AsyncBindingError,
   BindingConflictError,
   CircularDependencyError,
   DockdiError,

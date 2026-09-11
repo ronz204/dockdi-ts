@@ -53,7 +53,7 @@ export interface Binding<T> {
 1. Initialization creates an empty token-to-binding registry and a singleton instance storage.
 2. `bind(token)` returns a builder to register class, synchronous factory, or value bindings.
 3. `override(token)` returns a builder to override bindings in testing, invalidating cached singleton instances.
-4. `restore(token?)` restores original bindings and invalidates mocks.
+4. `scope()` creates a child container that inherits from the current container with isolated local registrations.
 5. `resolve(token)` delegates to the resolver, returning the resolved instance `T` strictly synchronously in nanoseconds.
 6. `reset()` clears all cached singleton instances.
 
@@ -62,8 +62,10 @@ export interface Binding<T> {
 export interface Container {
   bind<T>(token: Token<T>): BindingBuilder<T>;
   override<T>(token: Token<T>): BindingBuilder<T>;
-  restore(token?: Token<unknown>): void;
+  has(token: Token<unknown>): boolean;
   resolve<T>(token: Token<T>): T;
+  scope(): Container;
+  load(...modules: readonly Module[]): this;
   reset(): void;
 }
 ```

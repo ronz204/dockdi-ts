@@ -53,4 +53,4 @@ Project-wide invariants (zero decorators/`reflect-metadata`, zero production dep
 
 ## Non-goals
 
-Asynchronous dependency resolution, property injection, decorator-based metadata extraction, and hierarchical/child containers are undecided-or-excluded for v1 — see `.claude/docs/approach.md` and `.claude/docs/overview.md` for the current scope boundary.
+Asynchronous dependency resolution, property injection, and decorator-based metadata extraction are excluded for v1 — see `.claude/docs/approach.md` and `.claude/docs/overview.md` for the current scope boundary.

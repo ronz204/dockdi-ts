@@ -22,7 +22,7 @@ The library will implement:
 - Container binding APIs supporting class constructors, synchronous factory functions, and static values.
 - Lifecycle management supporting transient, singleton, and resolution-scope lifecycles.
 - Traversal algorithms to detect circular dependencies before call stack exhaustion.
-- Testing override utilities to substitute token bindings within isolated test suites.
+- Testing override utilities and child/scoped containers to substitute or isolate token bindings within test suites without mutating the original container.
 - Dual-target compilation outputting both ESM and CommonJS artifacts with full TypeScript definitions.
 
 ## Roadmap
@@ -30,16 +30,16 @@ The library will implement:
 0. **Phase 0: Core mechanism prototype** — Design and validate the constructor-to-tokens mapping without decorators or reflection. Verify prototype execution using Bun.
 1. **Phase 1: Minimal container core & synchronous resolution** — Deliver `bind` and synchronous `resolve` operations supporting transient scope, synchronous factories, and missing-token errors.
 2. **Phase 2: Scopes & lifecycle caching** — Implement synchronous singleton caching and resolution-scope lifecycles with instance identity validation tests.
-3. **Phase 3: Error diagnostics DX** — Implement full-chain circular dependency reporting and missing-token remediation suggestions.
-4. **Phase 4: Test isolation utilities** — Implement declarative binding overrides and container snapshots for unit testing suites.
+3. **Phase 3: Error diagnostics DX** — Implement full-chain circular dependency reporting and missing-token resolution-path reporting.
+4. **Phase 4: Test isolation utilities** — Implement mutable binding overrides and child/scoped containers with parent resolution fallback for unit testing suites.
 5. **Phase 5: Packaging and distribution** — Configure dual ESM/CJS build pipelines, verify bundle size budgets, and publish to npm registry.
-6. **Phase 6: Future extensions** — Evaluate hierarchical child containers and native framework bindings.
+6. **Phase 6: Future extensions** — Evaluate native framework bindings and resolution instrumentation/telemetry hooks.
 
 ## Risks
 
 - **The constructor-to-token mapping mechanism might not turn out to be a genuine improvement over the separately-maintained-list approach** other reflection-free containers already use — an explicit, order-dependent list of tokens kept in sync by hand against a constructor's parameters, with nothing catching drift between the two until it manifests as a wrong value at runtime. If Phase 0 can't find a mechanism the compiler itself can verify stays in sync, dockdi risks ending up as just another reflection-free container with no real differentiation from that existing approach. This is the most consequential risk in the project: it threatens dockdi's entire reason to exist — closing the exact gap other reflection-free containers leave open — not just an implementation-quality concern.
 - **Branded types can produce confusing TypeScript inference errors in edge cases** — nested generics, unions of branded types — that don't surface in the simple case. This needs to be tested early against realistic usage, not assumed solved because a minimal example compiles cleanly.
-- **Rich error DX and async support both create pressure toward a runtime dependency**, which the zero-production-dependency invariant forbids. Detailed error messages (with suggestions for near-miss tokens) and async resolution machinery are exactly the kind of feature that's tempting to reach for a small utility library to build well. Holding the invariant means solving both without one, not treating the invariant as negotiable once a feature seems to need it.
+- **Rich error DX and async support both create pressure toward a runtime dependency**, which the zero-production-dependency invariant forbids. Detailed error messages (with full resolution paths and cycle traces) and async resolution machinery are exactly the kind of feature that's tempting to reach for a small utility library to build well. Holding the invariant means solving both without one, not treating the invariant as negotiable once a feature seems to need it.
 - **Scope surface creep**: adding more scope kinds than are validated as actually needed, before real usage confirms the need, complicates the API for every consumer — including the ones who would never use the extra scopes.
 
 ## Done criteria
@@ -53,8 +53,8 @@ The initial implementation milestone is complete when:
 ## Stretch goals
 
 Deferred capabilities evaluated following core stabilization:
-- Hierarchical child containers with parent resolution fallback.
 - Native framework bindings tailored for Bun web frameworks such as Elysia.
+- Resolution instrumentation/middleware hooks (telemetry, logging) around the resolve pipeline.
 
 ---
 

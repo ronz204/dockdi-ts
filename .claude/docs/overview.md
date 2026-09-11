@@ -16,7 +16,8 @@ The library owns:
 - Type-safe token creation using phantom types.
 - Container registration and binding mapping supporting classes, synchronous factories, and constant values.
 - Strictly synchronous dependency resolution via `container.resolve(token): T`.
-- Instance lifecycle management across predefined scopes.
+- Instance lifecycle management across predefined scopes (transient, singleton, resolution).
+- Child/hierarchical containers that inherit an ancestor's bindings while keeping their own isolated registrations and singleton cache — the mechanism for per-test isolation without a snapshot/restore step.
 - Dependency graph traversal, circular dependency detection, and comprehensive diagnostic error reporting.
 - Dual distribution targeting ESM and CommonJS runtimes with zero external production dependencies.
 
@@ -25,7 +26,6 @@ Explicit non-goals for the initial release include:
 - Property injection: resolution is strictly constrained to constructor parameters and factory arguments.
 - Decorators in any form: decorator-based injection and metadata generation are excluded entirely.
 - Direct framework integration layers: integrations with web or application frameworks remain downstream concerns outside this core library.
-- Child or hierarchical container trees: multi-tier hierarchical resolution is deferred beyond the initial foundational implementation.
 
 ## Domain concepts
 
@@ -39,6 +39,7 @@ The vocabulary and architectural roles governing `dockdi` are detailed below:
 | `Scope` | The lifecycle policy controlling instance lifetime and reuse during resolution cycles, such as transient (new instance per resolution) or singleton (cached single instance). |
 | `Composition Root` | The isolated bootstrapping location within an application where all token bindings are wired into the container. Consuming domain logic does not interact with the container directly. |
 | `Constructor-to-Tokens Mapping` | The explicit association mechanism linking constructor parameter positions to their corresponding tokens without relying on reflection metadata. |
+| `Scoped (child) Container` | A container created from a parent, holding its own bindings and singleton cache while falling back to the parent for any token it doesn't register itself — used to isolate a binding override to one test or one subtree without mutating the original container. |
 
 ---
 

@@ -20,19 +20,21 @@ dockdi is a library, not a service — it has no request path, no server process
 ```
 consuming application
   └── composition root (assembles bindings once)
-        └── container.get(token) — in-process, synchronous by default
+        └── container.resolve(token) — in-process, strictly synchronous
+        └── container.scope() — child container, own registry + singleton
+              cache, falls back to the parent for tokens it doesn't own
 ```
 
 ## Cross-cutting patterns
 
-No cross-cutting patterns beyond the project-wide invariants apply yet — there is no cross-component behavior (auth, background jobs, caching) to describe, because the library has no components beyond the token/container/binding/scope concepts themselves. The invariants that do apply everywhere (zero decorators, zero production dependencies, synchronous-default resolution with async as opt-in) are each their own enforced convention rather than described here.
+No cross-cutting patterns beyond the project-wide invariants apply — there is no cross-component behavior (auth, background jobs, logging) to describe, because the library has no components beyond the token/container/binding/scope concepts themselves. The invariants that do apply everywhere (zero decorators, zero production dependencies, strictly synchronous resolution with no async path at all) are each their own enforced convention rather than described here.
 
-## Open architecture decisions
+## Architecture decisions
 
-- **Constructor-to-token mapping mechanism.** Nothing has resolved how a constructor's parameters get associated with tokens without runtime reflection. This is the single most consequential open decision in the project: if no mechanism meaningfully improves on requiring a separately-maintained, order-dependent list of tokens per constructor, the project risks not offering a real design advantage over that approach. Resolving this is a prerequisite for building any real container implementation.
-- **Whether hierarchical/child containers are in scope for the first version**, pending how the core mechanism above turns out — a container design that makes child scoping awkward would push this decision later regardless of preference.
-- **Final binding-method vocabulary** (how a binding declares itself as a class, a factory, or a fixed value) is unsettled — an initial proposal (verb-first names, one per strategy, rather than a single generic method covering all three) exists but hasn't been validated against real usage.
-- **Whether resolution-scope (an instance shared only within one resolution graph) ships in the first version** or is deferred, pending how often it turns out to be needed once constructor injection and the two simpler scopes are in real use.
+- **Constructor-to-token mapping** is resolved as an explicit, positional tuple of tokens passed alongside the constructor or factory at bind time, typed as a mapped tuple over the target's parameter types. This makes a token that doesn't match its parameter's type, or a tuple of the wrong length, a compile error rather than a runtime surprise — closing the gap that a hand-maintained, order-dependent token list would otherwise leave open.
+- **Hierarchical/child containers are in scope and shipped.** A child container is created from a parent, keeps its own registry and singleton cache, and falls back to the parent's resolver for any token it doesn't register itself — supporting isolated per-test scopes without a snapshot/restore mechanism.
+- **Binding-method vocabulary is settled**: one verb-first method per provider strategy (a method for binding to a class, one for a factory, one for a fixed value) rather than a single generic method covering all three.
+- **Resolution-scope shipped alongside transient and singleton** as a third lifecycle: an instance cached only for the duration of one top-level resolution call, shared across that call's dependency graph but not reused across separate resolutions.
 
 ---
 

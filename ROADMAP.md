@@ -112,16 +112,16 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 **Objetivo**: Proporcionar a los consumidores de `dockdi` facilidades ergonómicas y declarativas para sobrescribir dependencias (mocks/stubs) en suites de pruebas unitarias.
 
-- **Criterio de éxito**: Los desarrolladores pueden crear snapshots, clonar contenedores o sobrescribir bindings puntuales de forma aislada por test sin contaminar el contenedor original.
+- **Criterio de éxito**: Los desarrolladores pueden crear scopes aislados (`container.scope()`) o sobreescribir bindings puntuales (`container.override()`) de forma aislada por test sin contaminar el contenedor original.
 
 ### Tareas
-- [x] **Mecanismo de Overrides / Mocks**
-  - [x] Diseñar API de sobreescritura (ej. `container.override(token).toValue(mock)` o `container.createChild()` acotado a pruebas).
-  - [x] Implementar restauración de bindings (`restore()` o `snapshot()`).
+- [x] **Mecanismo de Overrides y Scopes**
+  - [x] Diseñar e implementar API de sobreescritura mutable (`container.override(token)`).
+  - [x] Implementar aislamiento jerárquico mediante contenedores hijo (`container.scope()`).
   - [x] Garantizar que las sobreescrituras invaliden adecuadamente las cachés de singleton afectadas.
 - [x] **Suite de Pruebas para Testing Utilities**
-  - [x] Tests de aislamiento verificando que un override en un test no afecte a resoluciones en tests posteriores.
-  - [x] Tests de sustitución de dependencias anidadas profundas por un mock.
+  - [x] Tests de aislamiento verificando que un override en un test o scope no afecte al contenedor original ni a otros tests.
+  - [x] Tests de sustitución de dependencias anidadas profundas por un mock (`testing/app/service/overrides.test.ts`).
 
 ---
 

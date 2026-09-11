@@ -11,7 +11,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
 | **Fase 1** | Core container & Resolución síncrona (`bind`, `resolve`, Transient, clases, factorías y valores) | 🟢 Completada |
 | **Fase 2** | Ciclo de vida y Scopes (Singleton síncrono, Resolution Scope) | 🟢 Completada |
-| **Fase 3** | DX de errores (Ciclos con traza completa síncrona y sugerencias Levenshtein) | 🟢 Completada |
+| **Fase 3** | DX de errores (Ciclos con traza completa síncrona y ruta de resolución) | 🟢 Completada |
 | **Fase 4** | Utilidades de testing (Mocking y Overrides) | 🟢 Completada |
 | **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
 | **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
@@ -57,7 +57,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
   - [x] Implementar la clase fachada `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
   - [x] Implementar `container.resolve(token): T` como método de resolución síncrono recursivo en nanosegundos.
   - [x] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
-  - [x] Manejar tokens no registrados lanzando `MissingTokenError` con sugerencias de tokens similares.
+  - [x] Manejar tokens no registrados lanzando `MissingTokenError` con la ruta completa de resolución.
 - [x] **Suite de Pruebas de la Fase 1**
   - [x] Tests de resolución de dependencias lineales sincrónicas (`A -> B -> C`).
   - [x] Tests de resolución con factorías síncronas mediante `container.resolve()`.
@@ -95,16 +95,16 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ### Tareas
 - [x] **Jerarquía y Utilidades de Diagnóstico (Completada en `source/errors/`)**
-  - [x] Crear jerarquía de clases de error dedicadas (`DockdiError`, `BindingConflictError`, `CircularDependencyError`, `MissingTokenError` en `source/errors/catalog.ts`).
+  - [x] Crear jerarquía de clases de error dedicadas (`DockdiError`, `BindingConflictError`, `CircularDependencyError`, `MissingTokenError`, `InstantiationError` en `source/errors/catalog.ts`).
   - [x] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]` (`source/errors/helpers.ts`).
-  - [x] En errores de token faltante (`MissingTokenError`), inspeccionar el registro y sugerir tokens con descripciones similares mediante cálculo de distancia Levenshtein (`source/errors/suggest.ts`).
+  - [x] En errores de token faltante (`MissingTokenError`), formatear la traza de resolución identada jerárquicamente (`source/errors/helpers.ts`).
 - [x] **Integración en Motor de Resolución**
   - [x] Implementar pila de resolución activa (`activeStack`) durante la invocación recursiva síncrona de `resolve`.
   - [x] Detectar presencia de un token en la pila antes de intentar resolverlo en el pipeline.
   - [x] Interrumpir la ejecución inmediatamente lanzando `CircularDependencyError`.
 - [x] **Suite de Pruebas de Diagnóstico**
   - [x] Tests de ciclos directos (`A -> B -> A`) e indirectos (`A -> B -> C -> NodeA`).
-  - [x] Tests verificando el texto exacto y las sugerencias de tokens similares (Levenshtein).
+  - [x] Tests verificando el formato de traza de resolución y mensajes de error.
 
 ---
 

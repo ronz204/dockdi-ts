@@ -75,7 +75,7 @@ export interface Container {
 **Flow.**
 1. Receives the requested token and active resolution session.
 2. Checks whether the token exists in the active resolution stack; if present, aborts immediately by throwing `CircularDependencyError` detailing the cycle chain.
-3. Verifies token is registered; if missing, throws `MissingTokenError` with Levenshtein suggestions.
+3. Verifies token is registered; if missing, throws `MissingTokenError` detailing the resolution path.
 4. Checks the instance cache if the binding specifies singleton scope; returns cached reference if found.
 5. Checks the resolution storage if resolution-scoped; returns cached reference within the current session if found.
 6. If dependencies are declared, recursively resolves each child dependency token synchronously.

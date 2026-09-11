@@ -16,7 +16,7 @@ Provide a lightweight, reflection-free dependency injection container that pairs
   - Re-binding prevention policy: throwing an explicit conflict error (`BindingConflictError`) if a token is registered more than once via `.bind()`.
   - Strictly synchronous recursive dependency resolution (`resolve<T>(token: Token<T>): T`) resolving classes, factories, and values immediately.
   - Resolution stack tracking (`activeStack`) detecting circular dependencies before call stack exhaustion and throwing `CircularDependencyError`.
-  - Missing token error reporting with intelligent near-miss suggestions via Levenshtein distance (`MissingTokenError`).
+  - Missing token error reporting with complete resolution call path (`MissingTokenError`).
   - Default lifecycle policy: `transient` scope (each resolution call yields a fresh, independent instance).
 - **Non-goals**:
   - Asynchronous dependency resolution or Promise-returning factories (asynchronous initialization belongs in application bootstrap, passing resolved instances to the container via `.toValue()`).
@@ -83,7 +83,7 @@ export class Container {
 - **Strict compile-time alignment**: `toClass` and `toFactory` enforce that dependency token tuples match parameter length, order, and types using `TokensForArgs`.
 - **Synchronous factory registration**: `toFactory` accepts synchronous factories returning `T`.
 - **Cycle detection**: Resolution maintains an active stack; if a token is requested while already present in `activeStack`, execution immediately throws `CircularDependencyError` without stack overflow.
-- **Actionable diagnostics**: Unregistered tokens throw `MissingTokenError` showing the full resolution path and suggestions for near-miss tokens.
+- **Actionable diagnostics**: Unregistered tokens throw `MissingTokenError` showing the full resolution path.
 - **Immutable registration**: Once bound, a token cannot be re-registered via `bind()`. Attempting to register an already bound token throws `BindingConflictError`.
 - **Transient isolation**: Under default transient scope, resolving a class or factory produces distinct instances on successive resolution invocations.
 - **Zero production dependencies**: The container uses native JavaScript `Map` and standard language constructs without external runtime packages.
@@ -98,7 +98,7 @@ export class Container {
 - Linear dependency graphs (e.g. `A -> B -> C`) resolve successfully and synchronously via `container.resolve(tokenA)`.
 - Synchronous factories registered with `toFactory` resolve successfully via `container.resolve(token)`.
 - Circular dependencies (`A -> B -> A`) throw `CircularDependencyError` printing the cycle trace.
-- Resolving an unregistered token throws `MissingTokenError` including near-miss suggestions.
+- Resolving an unregistered token throws `MissingTokenError` including the resolution path.
 - Calling `container.resolve(token)` multiple times for transient bindings returns distinct object references.
 - Calling `container.bind(token)` twice for the same token throws `BindingConflictError`.
 - Static type tests verify compile errors when passing incompatible types to `toValue`, `toClass`, or `toFactory`.
@@ -106,4 +106,4 @@ export class Container {
 
 ---
 
-Last updated: 2026-09-10.
+Last updated: 2026-09-11.

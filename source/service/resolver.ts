@@ -7,7 +7,6 @@ import {
   InstantiationError,
   MissingTokenError,
 } from "@errors/catalog";
-import { findTokenSuggestions } from "@errors/suggest";
 import { ResolutionCache, type SingletonCache } from "./caching";
 
 class ResolutionContext {
@@ -39,8 +38,7 @@ export class Resolver {
 
     const binding = this.registry.get(key);
     if (!binding) {
-      const suggestions = findTokenSuggestions(key, this.registry);
-      throw new MissingTokenError(key, context.stack, suggestions);
+      throw new MissingTokenError(key, context.stack);
     }
 
     if (binding.type === "value") {

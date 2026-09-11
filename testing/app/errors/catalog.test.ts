@@ -44,17 +44,10 @@ describe("Error Catalog Hierarchy", () => {
     );
   });
 
-  it("formats MissingTokenError with suggestions when provided", () => {
+  it("formats MissingTokenError correctly", () => {
     const t = token<string>("target");
-    const missing = new MissingTokenError(
-      t,
-      [],
-      ["targetService", "targetRepo"],
-    );
+    const missing = new MissingTokenError(t, []);
 
     expect(missing.message).toContain("Token not registered: Token[target]");
-    expect(missing.message).toContain(
-      "Did you mean: Token[targetService], Token[targetRepo]?",
-    );
   });
 });

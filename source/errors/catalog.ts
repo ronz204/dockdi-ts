@@ -31,19 +31,11 @@ export class MissingTokenError extends DockdiError {
   constructor(
     readonly token: Token<unknown>,
     readonly path: readonly Token<unknown>[],
-    readonly suggestions: readonly string[] | undefined = undefined,
   ) {
     const lines = [
       `Token not registered: ${describeToken(token)}`,
       formatResolutionPath(path, token),
     ];
-
-    if (suggestions?.length) {
-      const formattedSuggestions = suggestions
-        .map((s) => `Token[${s}]`)
-        .join(", ");
-      lines.push(`\nDid you mean: ${formattedSuggestions}?`);
-    }
 
     super(lines.filter(Boolean).join("\n"));
   }

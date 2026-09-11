@@ -1,5 +1,5 @@
 <!--
-Template for services/<service>/deltas/<slice>.spec.md — the living, current
+Template for deltas/<slice>.spec.md — the living, current
 contract for one project slice/capability's LOGIC layer (data, rules,
 invariants). A slice with a UI-facing surface has a presentation-layer
 counterpart, <slice>.design.md (own template, references/design.template.md)

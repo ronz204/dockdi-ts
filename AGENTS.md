@@ -11,18 +11,21 @@ Type-first dependency injection library for TypeScript based on explicit branded
 | `.agents/docs/` | Self-contained technical reference documents (overview, approach, structure, modules, expertise, database) |
 | `.agents/rules/` | Project conventions loaded conditionally based on file paths matching `paths:` glob patterns |
 | `.agents/skills/` | Reusable skills for knowledge management and delta workflow (`surveyor`, `specifier`, `archivist`, `sentinel`) |
-| `libraries/*/deltas/` | Per-slice specification, design, and roadmap documents (`<slice>.spec.md`, `<slice>.design.md`, `<slice>.plan.md`) |
+| `deltas/` | Per-slice specification, design, and roadmap documents (`<slice>.spec.md`, `<slice>.design.md`, `<slice>.plan.md`) |
 
 ## Repo layout
 
 | Path | Purpose |
 |---|---|
-| `libraries/dockdi-ts/` | Core TypeScript package containing library source, Bun configuration, and test suites |
+| `source/` | Library source |
+| `testing/` | Test suites (unit, integration, benchmarks, helpers) |
 | `.agents/` | Agent harness containing project documentation, editing rules, and delta workflow skills |
+
+The repo root is the package itself — `package.json`, `tsconfig.json`, and the rest of the Bun/build config sit directly at the top level; there's no nested package directory.
 
 ## Setup & common commands
 
-All development workflows operate through Bun within the target package directory (`libraries/dockdi-ts`):
+All development workflows operate through Bun directly at the repo root:
 
 | Task | Command |
 |---|---|
@@ -35,7 +38,7 @@ All development workflows operate through Bun within the target package director
 - Dependency injection is strictly token-driven via branded phantom types (`Token<T>`); decorators (`@inject`) and `reflect-metadata` are prohibited.
 - Resolution execution is strictly synchronous: `container.resolve(token)` returns `T` directly without `await`, promises, or event-loop overhead.
 - Published library code maintains zero runtime dependencies.
-- Changes to knowledge-base files under `.agents/` or delta contracts under `libraries/*/deltas/` route through `archivist` per `.agents/rules/kb-edit-routing.md`.
+- Changes to knowledge-base files under `.agents/` or delta contracts under `deltas/` route through `archivist` per `.agents/rules/kb-edit-routing.md`.
 
 ---
 

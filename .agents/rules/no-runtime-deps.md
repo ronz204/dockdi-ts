@@ -1,6 +1,6 @@
 ---
 paths:
-  - "libraries/dockdi-ts/package.json"
+  - "package.json"
 ---
 
 # Zero Production Dependencies Conventions

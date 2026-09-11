@@ -1,5 +1,5 @@
 <!--
-Template for services/<service>/deltas/<slice>.design.md — the living,
+Template for deltas/<slice>.design.md — the living,
 current UI-facing contract for a slice: the presentation-layer counterpart
 to <slice>.spec.md's logic-layer contract. Created only for slices that have
 a UI-facing surface — most slices never need this file.

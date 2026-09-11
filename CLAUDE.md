@@ -12,7 +12,7 @@ Type-first dependency injection library for TypeScript, built on explicit brande
 | `.claude/rules/` | Conventions auto-loaded when a matching file is opened/edited, scoped via `paths:` frontmatter |
 | `.claude/skills/` | This project's delta-workflow skills (`surveyor`, `specifier`, `archivist`, `sentinel`) |
 | `.claude/settings.json` | Permission policy — see Permissions below |
-| `libraries/<package>/deltas/` | Per-slice spec/design/plan files: `<slice>.spec.md`, optional `<slice>.design.md`, optional `<slice>.plan.md` |
+| `deltas/` | Per-slice spec/design/plan files: `<slice>.spec.md`, optional `<slice>.design.md`, optional `<slice>.plan.md` |
 
 This knowledge base governs `.claude/` only. The repo also carries a separate, independent harness under `.agents/` (with its own root `AGENTS.md`) for a different agent tool — the two are not kept in sync and edits to one don't imply the other.
 
@@ -20,12 +20,15 @@ This knowledge base governs `.claude/` only. The repo also carries a separate, i
 
 | Path | Purpose |
 |---|---|
-| `libraries/dockdi-ts/` | The core TypeScript package: library source, Bun-based dependency/lockfile management, `tsconfig.json` |
-| `approach.md` | Root-level source of truth for the project's domain model, invariants, phased roadmap, and open risks/decisions |
+| `source/` | Library source |
+| `testing/` | Test suites (unit, integration, benchmarks, helpers) |
+| `deltas/` | Per-slice spec/design/plan files — see Knowledge base layout above |
+
+The repo root is the package itself — `package.json`, `tsconfig.json`, and the rest of the Bun/build config sit directly at the top level; there's no nested package directory.
 
 ## Setup & common commands
 
-All commands run from inside the package directory (`libraries/dockdi-ts/`), which is the only real package in the repo today.
+All commands run directly from the repo root.
 
 | Task | Command |
 |---|---|

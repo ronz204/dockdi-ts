@@ -1,7 +1,6 @@
 ---
 paths:
   - "source/**"
-  - "libraries/dockdi-ts/source/**"
 ---
 
 # Strictly Synchronous Resolution Conventions

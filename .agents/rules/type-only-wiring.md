@@ -1,6 +1,6 @@
 ---
 paths:
-  - "libraries/dockdi-ts/source/**"
+  - "source/**"
 ---
 
 # No Decorators / No Reflection Conventions

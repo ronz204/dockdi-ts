@@ -4,12 +4,12 @@ paths:
   - ".agents/docs/**"
   - ".agents/rules/**"
   - ".agents/skills/**"
-  - "libraries/**/deltas/**"
+  - "deltas/**"
 ---
 
 # Delta Knowledge-Base Editing Conventions
 
-These paths are the durable knowledge base this project's delta methodology maintains — `AGENTS.md`, `.agents/docs/`, `.agents/rules/`, `.agents/skills/`, and every slice's `spec.md`/`design.md`/`plan.md` under `libraries/*/deltas/`. They exist to stay grounded and current; editing them ad hoc is exactly the kind of drift the methodology is meant to prevent.
+These paths are the durable knowledge base this project's delta methodology maintains — `AGENTS.md`, `.agents/docs/`, `.agents/rules/`, `.agents/skills/`, and every slice's `spec.md`/`design.md`/`plan.md` under `deltas/`. They exist to stay grounded and current; editing them ad hoc is exactly the kind of drift the methodology is meant to prevent.
 
 ---
 

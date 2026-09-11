@@ -1,5 +1,5 @@
 <!--
-Template for services/<service>/deltas/<slice>.plan.md — the step-by-step
+Template for deltas/<slice>.plan.md — the step-by-step
 implementation roadmap for realizing a slice's spec and/or design (or a
 bounded piece of work that doesn't need a full slice yet). Unlike spec.md/
 design.md, a plan is NOT living truth forever: once every step is done and

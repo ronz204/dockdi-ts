@@ -1,42 +1,38 @@
 import type { Token } from "@core/token";
 
-export class SingletonStorage {
-  private readonly instances: Map<Token<unknown>, unknown> = new Map();
-
-  public remember<T>(token: Token<T>, producer: () => T): T {
-    const tokenKey = token as Token<unknown>;
-
-    if (this.instances.has(tokenKey)) {
-      return this.instances.get(tokenKey) as T;
+function dispose(target: unknown): void {
+  if (target && typeof target === "object") {
+    const fn =
+      ("dispose" in Symbol &&
+        (target as Record<symbol, unknown>)[Symbol.dispose]) ||
+      (target as Record<string, unknown>).dispose;
+    if (typeof fn === "function") {
+      (fn as () => void).call(target);
     }
-
-    const instance = producer();
-    this.instances.set(tokenKey, instance);
-    return instance;
-  }
-
-  public invalidate(token: Token<unknown>): void {
-    const tokenKey = token as Token<unknown>;
-    this.instances.delete(tokenKey);
-  }
-
-  public clear(): void {
-    this.instances.clear();
   }
 }
 
-export class ResolutionStorage {
-  private readonly instances: Map<Token<unknown>, unknown> = new Map();
+export class InstanceCache {
+  protected readonly instances: Map<Token<unknown>, unknown> = new Map();
 
-  public remember<T>(token: Token<T>, producer: () => T): T {
-    const tokenKey = token as Token<unknown>;
-
-    if (this.instances.has(tokenKey)) {
-      return this.instances.get(tokenKey) as T;
+  public remember<T>(token: Token<T>, create: () => T): T {
+    const key = token as Token<unknown>;
+    let instance = this.instances.get(key);
+    if (instance === undefined && !this.instances.has(key)) {
+      instance = create();
+      this.instances.set(key, instance);
     }
+    return instance as T;
+  }
+}
 
-    const instance = producer();
-    this.instances.set(tokenKey, instance);
-    return instance;
+export class ResolutionCache extends InstanceCache {}
+
+export class SingletonCache extends InstanceCache {
+  public clear(): void {
+    for (const instance of this.instances.values()) {
+      dispose(instance);
+    }
+    this.instances.clear();
   }
 }

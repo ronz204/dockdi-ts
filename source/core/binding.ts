@@ -1,4 +1,4 @@
-import type { Assembler, TokensForArgs } from "./assembler";
+import type { Constructor, TokensArg } from "./assembler";
 import type { Token } from "./token";
 
 export type BindingType = "class" | "factory" | "value";
@@ -8,23 +8,23 @@ export interface Binding<_T = unknown> {
   scope: ScopeType;
   readonly type: BindingType;
   readonly provider: unknown;
-  readonly dependencies?: readonly Token<unknown>[];
+  readonly deps?: readonly Token<unknown>[];
 }
 
-export interface ScopedBindingBuilder {
-  inSingletonScope(): void;
-  inTransientScope(): void;
-  inResolutionScope(): void;
+export interface ScopeBuilder {
+  inSingleton(): void;
+  inTransient(): void;
+  inResolution(): void;
 }
 
 export interface BindingBuilder<T> {
   toValue(value: T): void;
   toClass<Args extends readonly unknown[]>(
-    target: Assembler<T, Args>,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder;
+    target: Constructor<T, Args>,
+    ...[tokens]: TokensArg<Args>
+  ): ScopeBuilder;
   toFactory<Args extends readonly unknown[]>(
     factory: (...args: Args) => T,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder;
+    ...[tokens]: TokensArg<Args>
+  ): ScopeBuilder;
 }

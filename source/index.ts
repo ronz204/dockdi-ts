@@ -1,14 +1,27 @@
-export type { Assembler, TokensForArgs } from "./core/assembler";
 export type {
+  Constructor,
+  Tokens,
+  TokensArg,
+} from "./core/assembler";
+export type {
+  Binding,
   BindingBuilder,
-  ScopedBindingBuilder,
+  ScopeBuilder,
   ScopeType,
 } from "./core/binding";
-export { type Token, token } from "./core/token";
+export {
+  type Class,
+  type Token,
+  token,
+} from "./core/token";
 export {
   BindingConflictError,
   CircularDependencyError,
   DockdiError,
+  InstantiationError,
   MissingTokenError,
 } from "./errors/catalog";
-export { Container } from "./service/container";
+export {
+  Container,
+  type Module,
+} from "./service/container";

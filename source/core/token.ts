@@ -4,6 +4,9 @@ export type Token<T> = symbol & {
   readonly [__brand]: T;
 };
 
-export function token<T>(description?: string): Token<T> {
-  return Symbol(description) as Token<T>;
+export type Class<T> = abstract new (...args: never[]) => T;
+
+export function token<T>(target?: Class<T> | string): Token<T> {
+  const desc = typeof target === "function" ? target.name : target;
+  return Symbol(desc) as Token<T>;
 }

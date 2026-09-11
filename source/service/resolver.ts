@@ -1,50 +1,46 @@
-import type { Assembler } from "@core/assembler";
+import type { Constructor } from "@core/assembler";
 import type { Binding } from "@core/binding";
 import type { Token } from "@core/token";
-import { CircularDependencyError, MissingTokenError } from "@errors/catalog";
+import {
+  CircularDependencyError,
+  DockdiError,
+  InstantiationError,
+  MissingTokenError,
+} from "@errors/catalog";
 import { findTokenSuggestions } from "@errors/suggest";
-import { ResolutionStorage, type SingletonStorage } from "./caching";
+import { ResolutionCache, type SingletonCache } from "./caching";
 
-class ResolutionSession {
-  constructor(
-    public readonly activeStack: readonly Token<unknown>[] = [],
-    public readonly resolutionStorage: ResolutionStorage = new ResolutionStorage(),
-  ) {}
-
-  public push(token: Token<unknown>): ResolutionSession {
-    return new ResolutionSession(
-      [...this.activeStack, token],
-      this.resolutionStorage,
-    );
-  }
+class ResolutionContext {
+  public readonly stack: Token<unknown>[] = [];
+  public readonly set: Set<Token<unknown>> = new Set();
+  public readonly cache: ResolutionCache = new ResolutionCache();
 }
 
 export class Resolver {
   constructor(
     private readonly registry: Map<Token<unknown>, Binding<unknown>>,
-    private readonly singletonStorage: SingletonStorage,
+    private readonly singletons: SingletonCache,
   ) {}
 
   public resolve<T>(token: Token<T>): T {
-    return this.resolveWithSession(token, new ResolutionSession());
+    return this.resolveWithContext(token, new ResolutionContext());
   }
 
-  private resolveWithSession<T>(
+  private resolveWithContext<T>(
     token: Token<T>,
-    session: ResolutionSession,
+    context: ResolutionContext,
   ): T {
-    const tokenKey = token as Token<unknown>;
+    const key = token as Token<unknown>;
 
-    const existingIndex = session.activeStack.indexOf(tokenKey);
-    if (existingIndex !== -1) {
-      const cycle = [...session.activeStack.slice(existingIndex), tokenKey];
+    if (context.set.has(key)) {
+      const cycle = [...context.stack.slice(context.stack.indexOf(key)), key];
       throw new CircularDependencyError(cycle);
     }
 
-    const binding = this.registry.get(tokenKey);
+    const binding = this.registry.get(key);
     if (!binding) {
-      const suggestions = findTokenSuggestions(tokenKey, this.registry);
-      throw new MissingTokenError(tokenKey, session.activeStack, suggestions);
+      const suggestions = findTokenSuggestions(key, this.registry);
+      throw new MissingTokenError(key, context.stack, suggestions);
     }
 
     if (binding.type === "value") {
@@ -52,37 +48,43 @@ export class Resolver {
     }
 
     if (binding.scope === "singleton") {
-      return this.singletonStorage.remember(token, () =>
-        this.execute<T>(binding, tokenKey, session),
+      return this.singletons.remember(token, () =>
+        this.execute<T>(binding, key, context),
       );
     }
 
     if (binding.scope === "resolution") {
-      return session.resolutionStorage.remember(token, () =>
-        this.execute<T>(binding, tokenKey, session),
+      return context.cache.remember(token, () =>
+        this.execute<T>(binding, key, context),
       );
     }
 
-    return this.execute<T>(binding, tokenKey, session);
+    return this.execute<T>(binding, key, context);
   }
 
   private execute<T>(
     binding: Binding<unknown>,
-    tokenKey: Token<unknown>,
-    session: ResolutionSession,
+    key: Token<unknown>,
+    context: ResolutionContext,
   ): T {
-    const nextSession = session.push(tokenKey);
-    const dependencies = binding.dependencies ?? [];
-    const resolvedArgs = dependencies.map((dep) =>
-      this.resolveWithSession(dep, nextSession),
-    );
+    context.stack.push(key);
+    context.set.add(key);
 
-    if (binding.type === "class") {
-      const Target = binding.provider as Assembler<T, unknown[]>;
-      return new Target(...resolvedArgs);
+    try {
+      const args =
+        binding.deps?.map((dep) => this.resolveWithContext(dep, context)) ?? [];
+
+      try {
+        return binding.type === "class"
+          ? new (binding.provider as Constructor<T, unknown[]>)(...args)
+          : (binding.provider as (...args: unknown[]) => T)(...args);
+      } catch (cause) {
+        if (cause instanceof DockdiError) throw cause;
+        throw new InstantiationError(key, context.stack.slice(0, -1), cause);
+      }
+    } finally {
+      context.stack.pop();
+      context.set.delete(key);
     }
-
-    const factory = binding.provider as (...args: unknown[]) => T;
-    return factory(...resolvedArgs);
   }
 }

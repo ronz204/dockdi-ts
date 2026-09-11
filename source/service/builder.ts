@@ -1,80 +1,75 @@
-import type { Assembler, TokensForArgs } from "@core/assembler";
+import type { Constructor, TokensArg } from "@core/assembler";
 import type {
   Binding,
   BindingBuilder,
   BindingType,
-  ScopedBindingBuilder,
+  ScopeBuilder,
   ScopeType,
 } from "@core/binding";
 import type { Token } from "@core/token";
 import { BindingConflictError } from "@errors/catalog";
 
-class BindingRecord<T = unknown> implements Binding<T>, ScopedBindingBuilder {
+class BindingRecord<T = unknown> implements Binding<T>, ScopeBuilder {
   public scope: ScopeType = "transient";
 
   constructor(
     public readonly type: BindingType,
     public readonly provider: unknown,
-    public readonly dependencies?: readonly Token<unknown>[] | undefined,
+    public readonly deps?: readonly Token<unknown>[],
   ) {}
 
-  public inSingletonScope(): void {
+  public inSingleton(): void {
     this.scope = "singleton";
   }
 
-  public inTransientScope(): void {
+  public inTransient(): void {
     this.scope = "transient";
   }
 
-  public inResolutionScope(): void {
+  public inResolution(): void {
     this.scope = "resolution";
   }
 }
 
 export class RegistryBuilder<T> implements BindingBuilder<T> {
-  private readonly tokenKey: Token<unknown>;
+  private readonly key: Token<unknown>;
 
   constructor(
     token: Token<T>,
     private readonly registry: Map<Token<unknown>, Binding<unknown>>,
-    allowOverride: boolean = false,
   ) {
-    this.tokenKey = token as Token<unknown>;
-    if (!allowOverride && this.registry.has(this.tokenKey)) {
-      throw new BindingConflictError(this.tokenKey);
+    this.key = token as Token<unknown>;
+    if (this.registry.has(this.key)) {
+      throw new BindingConflictError(this.key);
     }
   }
 
   public toValue(value: T): void {
     const binding = new BindingRecord("value", value);
-    this.registry.set(this.tokenKey, binding);
+    this.registry.set(this.key, binding);
   }
 
   public toClass<Args extends readonly unknown[]>(
-    target: Assembler<T, Args>,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder {
+    target: Constructor<T, Args>,
+    ...[tokens]: TokensArg<Args>
+  ): ScopeBuilder {
     return this.bindScoped("class", target, tokens);
   }
 
   public toFactory<Args extends readonly unknown[]>(
     factory: (...args: Args) => T,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder {
+    ...[tokens]: TokensArg<Args>
+  ): ScopeBuilder {
     return this.bindScoped("factory", factory, tokens);
   }
 
-  private bindScoped<Args extends readonly unknown[]>(
+  private bindScoped(
     type: BindingType,
     provider: unknown,
-    tokens: TokensForArgs<Args>,
-  ): ScopedBindingBuilder {
-    const binding = new BindingRecord(
-      type,
-      provider,
-      tokens as readonly Token<unknown>[],
-    );
-    this.registry.set(this.tokenKey, binding);
+    tokens?: readonly Token<unknown>[],
+  ): ScopeBuilder {
+    const binding = new BindingRecord(type, provider, tokens ?? []);
+    this.registry.set(this.key, binding);
     return binding;
   }
 }

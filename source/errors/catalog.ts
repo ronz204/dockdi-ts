@@ -30,12 +30,12 @@ export class MissingTokenError extends DockdiError {
 
   constructor(
     readonly token: Token<unknown>,
-    readonly activeStack: readonly Token<unknown>[],
+    readonly path: readonly Token<unknown>[],
     readonly suggestions: readonly string[] | undefined = undefined,
   ) {
     const lines = [
       `Token not registered: ${describeToken(token)}`,
-      formatResolutionPath(activeStack, token),
+      formatResolutionPath(path, token),
     ];
 
     if (suggestions?.length) {
@@ -46,5 +46,23 @@ export class MissingTokenError extends DockdiError {
     }
 
     super(lines.filter(Boolean).join("\n"));
+  }
+}
+
+export class InstantiationError extends DockdiError {
+  override readonly name: string = "InstantiationError";
+
+  constructor(
+    readonly token: Token<unknown>,
+    readonly path: readonly Token<unknown>[],
+    override readonly cause: unknown,
+  ) {
+    const reason = cause instanceof Error ? cause.message : String(cause);
+    const lines = [
+      `Failed to instantiate ${describeToken(token)}: ${reason}`,
+      formatResolutionPath(path, token),
+    ];
+
+    super(lines.filter(Boolean).join("\n"), { cause });
   }
 }

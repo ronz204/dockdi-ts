@@ -10,7 +10,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("Resolver Engine", () => {
-  it("resolves constant value binding", async () => {
+  it("resolves constant value binding", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const storage = new SingletonStorage();
     const resolver = new Resolver(registry, storage);
@@ -18,20 +18,20 @@ describe("Resolver Engine", () => {
     const t = token<string>("val");
     registry.set(t, { type: "value", scope: "transient", provider: "dockdi" });
 
-    const result = await resolver.resolve(t);
+    const result = resolver.resolve(t);
     expect(result).toBe("dockdi");
   });
 
-  it("throws MissingTokenError when token is not registered", async () => {
+  it("throws MissingTokenError when token is not registered", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const storage = new SingletonStorage();
     const resolver = new Resolver(registry, storage);
 
     const t = token<string>("missing");
-    await expect(resolver.resolve(t)).rejects.toThrow(MissingTokenError);
+    expect(() => resolver.resolve(t)).toThrow(MissingTokenError);
   });
 
-  it("detects circular dependency and throws CircularDependencyError", async () => {
+  it("detects circular dependency and throws CircularDependencyError", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const storage = new SingletonStorage();
     const resolver = new Resolver(registry, storage);
@@ -53,12 +53,10 @@ describe("Resolver Engine", () => {
       dependencies: [tokenA],
     });
 
-    await expect(resolver.resolve(tokenA)).rejects.toThrow(
-      CircularDependencyError,
-    );
+    expect(() => resolver.resolve(tokenA)).toThrow(CircularDependencyError);
   });
 
-  it("resolves sibling dependencies concurrently", async () => {
+  it("resolves sibling dependencies synchronously", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const storage = new SingletonStorage();
     const resolver = new Resolver(registry, storage);
@@ -70,13 +68,13 @@ describe("Resolver Engine", () => {
     registry.set(dep1, {
       type: "factory",
       scope: "transient",
-      provider: async () => 10,
+      provider: () => 10,
     });
 
     registry.set(dep2, {
       type: "factory",
       scope: "transient",
-      provider: async () => 20,
+      provider: () => 20,
     });
 
     registry.set(root, {
@@ -86,7 +84,7 @@ describe("Resolver Engine", () => {
       dependencies: [dep1, dep2],
     });
 
-    const sum = await resolver.resolve(root);
+    const sum = resolver.resolve(root);
     expect(sum).toBe(30);
   });
 });

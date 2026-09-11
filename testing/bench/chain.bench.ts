@@ -25,16 +25,16 @@ const chain25 = createChainContainer(25);
 const chain50 = createChainContainer(50);
 
 group("Linear Chain Depth Resolution", () => {
-  bench("depth 10", async () => {
-    await chain10.container.resolve(chain10.root);
+  bench("depth 10", () => {
+    chain10.container.resolve(chain10.root);
   });
 
-  bench("depth 25", async () => {
-    await chain25.container.resolve(chain25.root);
+  bench("depth 25", () => {
+    chain25.container.resolve(chain25.root);
   });
 
-  bench("depth 50", async () => {
-    await chain50.container.resolve(chain50.root);
+  bench("depth 50", () => {
+    chain50.container.resolve(chain50.root);
   });
 });
 

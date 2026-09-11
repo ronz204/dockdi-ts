@@ -2,7 +2,7 @@ import { CircularDependencyError, Container, token } from "dockdi";
 import { describe, expect, it } from "vitest";
 
 describe("Integration: Circular Dependency Diagnostics", () => {
-  it("detects direct circular dependency between two services", async () => {
+  it("detects direct circular dependency between two services", () => {
     const TokenA = token<unknown>("NodeA");
     const TokenB = token<unknown>("NodeB");
 
@@ -11,7 +11,7 @@ describe("Integration: Circular Dependency Diagnostics", () => {
     container.bind(TokenB).toFactory((a) => ({ a }), [TokenA]);
 
     try {
-      await container.resolve(TokenA);
+      container.resolve(TokenA);
       expect.unreachable("should have thrown CircularDependencyError");
     } catch (err) {
       expect(err).toBeInstanceOf(CircularDependencyError);
@@ -23,7 +23,7 @@ describe("Integration: Circular Dependency Diagnostics", () => {
     }
   });
 
-  it("detects deep nested cycle within larger graph", async () => {
+  it("detects deep nested cycle within larger graph", () => {
     const RootToken = token<unknown>("Root");
     const TokenA = token<unknown>("NodeA");
     const TokenB = token<unknown>("NodeB");
@@ -36,7 +36,7 @@ describe("Integration: Circular Dependency Diagnostics", () => {
     container.bind(TokenC).toFactory((a) => ({ a }), [TokenA]);
 
     try {
-      await container.resolve(RootToken);
+      container.resolve(RootToken);
       expect.unreachable("should have thrown CircularDependencyError");
     } catch (err) {
       expect(err).toBeInstanceOf(CircularDependencyError);

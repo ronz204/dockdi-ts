@@ -48,7 +48,7 @@ export class Container {
     this.overrides.clear();
   }
 
-  public resolve<T>(token: Token<T>): Promise<T> {
+  public resolve<T>(token: Token<T>): T {
     return this.resolver.resolve(token);
   }
 

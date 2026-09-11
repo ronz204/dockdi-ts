@@ -58,7 +58,7 @@ export class RegistryBuilder<T> implements BindingBuilder<T> {
   }
 
   public toFactory<Args extends readonly unknown[]>(
-    factory: (...args: Args) => T | Promise<T>,
+    factory: (...args: Args) => T,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder {
     return this.bindScoped("factory", factory, tokens);

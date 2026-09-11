@@ -23,17 +23,17 @@ const fanout5 = createFanoutContainer(5);
 const fanout15 = createFanoutContainer(15);
 const fanout30 = createFanoutContainer(30);
 
-group("Fan-out Parallel Dependency Resolution", () => {
-  bench("fan-out 5 dependencies", async () => {
-    await fanout5.container.resolve(fanout5.root);
+group("Fan-out Dependency Resolution", () => {
+  bench("fan-out 5 dependencies", () => {
+    fanout5.container.resolve(fanout5.root);
   });
 
-  bench("fan-out 15 dependencies", async () => {
-    await fanout15.container.resolve(fanout15.root);
+  bench("fan-out 15 dependencies", () => {
+    fanout15.container.resolve(fanout15.root);
   });
 
-  bench("fan-out 30 dependencies", async () => {
-    await fanout30.container.resolve(fanout30.root);
+  bench("fan-out 30 dependencies", () => {
+    fanout30.container.resolve(fanout30.root);
   });
 });
 

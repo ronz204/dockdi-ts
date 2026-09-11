@@ -24,7 +24,7 @@ export interface BindingBuilder<T> {
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
   toFactory<Args extends readonly unknown[]>(
-    factory: (...args: Args) => T | Promise<T>,
+    factory: (...args: Args) => T,
     tokens: TokensForArgs<Args>,
   ): ScopedBindingBuilder;
 }

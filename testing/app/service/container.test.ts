@@ -13,7 +13,7 @@ class Car {
 }
 
 describe("Container Public Facade", () => {
-  it("binds and resolves class instances with dependencies", async () => {
+  it("binds and resolves class instances with dependencies", () => {
     const EngineToken = token<Engine>("Engine");
     const CarToken = token<Car>("Car");
 
@@ -21,41 +21,39 @@ describe("Container Public Facade", () => {
     container.bind(EngineToken).toClass(Engine, []).inSingletonScope();
     container.bind(CarToken).toClass(Car, [EngineToken]);
 
-    const car = await container.resolve(CarToken);
+    const car = container.resolve(CarToken);
     expect(car).toBeInstanceOf(Car);
     expect(car.engine).toBeInstanceOf(Engine);
 
     car.engine.start();
     expect(car.engine.started).toBe(true);
 
-    const car2 = await container.resolve(CarToken);
+    const car2 = container.resolve(CarToken);
     expect(car2.engine.started).toBe(true);
     expect(car2.engine).toBe(car.engine);
   });
 
-  it("binds values directly", async () => {
+  it("binds values directly", () => {
     const ConfigToken = token<{ port: number }>("Config");
     const container = new Container();
 
     container.bind(ConfigToken).toValue({ port: 8080 });
 
-    const config = await container.resolve(ConfigToken);
+    const config = container.resolve(ConfigToken);
     expect(config.port).toBe(8080);
   });
 
-  it("binds async factories", async () => {
-    const AsyncDataToken = token<string>("AsyncData");
+  it("binds factories", () => {
+    const FactoryDataToken = token<string>("FactoryData");
     const container = new Container();
 
-    container.bind(AsyncDataToken).toFactory(async () => {
-      return "async-payload";
-    }, []);
+    container.bind(FactoryDataToken).toFactory(() => "factory-payload", []);
 
-    const data = await container.resolve(AsyncDataToken);
-    expect(data).toBe("async-payload");
+    const data = container.resolve(FactoryDataToken);
+    expect(data).toBe("factory-payload");
   });
 
-  it("clears cached singletons on reset()", async () => {
+  it("clears cached singletons on reset()", () => {
     const CounterToken = token<{ id: number }>("Counter");
     const container = new Container();
     let count = 0;
@@ -65,15 +63,15 @@ describe("Container Public Facade", () => {
       .toFactory(() => ({ id: ++count }), [])
       .inSingletonScope();
 
-    const first = await container.resolve(CounterToken);
+    const first = container.resolve(CounterToken);
     expect(first.id).toBe(1);
 
-    const cached = await container.resolve(CounterToken);
+    const cached = container.resolve(CounterToken);
     expect(cached.id).toBe(1);
 
     container.reset();
 
-    const recreated = await container.resolve(CounterToken);
+    const recreated = container.resolve(CounterToken);
     expect(recreated.id).toBe(2);
   });
 });

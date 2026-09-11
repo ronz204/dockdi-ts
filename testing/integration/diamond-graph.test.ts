@@ -21,7 +21,7 @@ class ServiceA {
 }
 
 describe("Integration: Diamond Dependency Graph", () => {
-  it("shares singleton dependency instance across sibling branches", async () => {
+  it("shares singleton dependency instance across sibling branches", () => {
     const DToken = token<ServiceD>("D");
     const BToken = token<ServiceB>("B");
     const CToken = token<ServiceC>("C");
@@ -33,14 +33,14 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = await container.resolve(AToken);
+    const a1 = container.resolve(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = await container.resolve(AToken);
+    const a2 = container.resolve(AToken);
     expect(a2.b.d).toBe(a1.b.d);
   });
 
-  it("shares resolution scope dependency within tree but isolates between trees", async () => {
+  it("shares resolution scope dependency within tree but isolates between trees", () => {
     const DToken = token<ServiceD>("D");
     const BToken = token<ServiceB>("B");
     const CToken = token<ServiceC>("C");
@@ -52,15 +52,15 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = await container.resolve(AToken);
+    const a1 = container.resolve(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = await container.resolve(AToken);
+    const a2 = container.resolve(AToken);
     expect(a2.b.d).toBe(a2.c.d);
     expect(a1.b.d).not.toBe(a2.b.d);
   });
 
-  it("creates distinct instances for transient dependencies across branches", async () => {
+  it("creates distinct instances for transient dependencies across branches", () => {
     const DToken = token<ServiceD>("D");
     const BToken = token<ServiceB>("B");
     const CToken = token<ServiceC>("C");
@@ -72,7 +72,7 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a = await container.resolve(AToken);
+    const a = container.resolve(AToken);
     expect(a.b.d).not.toBe(a.c.d);
   });
 });

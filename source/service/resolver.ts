@@ -25,14 +25,14 @@ export class Resolver {
     private readonly singletonStorage: SingletonStorage,
   ) {}
 
-  public async resolve<T>(token: Token<T>): Promise<T> {
-    return await this.resolveWithSession(token, new ResolutionSession());
+  public resolve<T>(token: Token<T>): T {
+    return this.resolveWithSession(token, new ResolutionSession());
   }
 
-  private async resolveWithSession<T>(
+  private resolveWithSession<T>(
     token: Token<T>,
     session: ResolutionSession,
-  ): Promise<T> {
+  ): T {
     const tokenKey = token as Token<unknown>;
 
     const existingIndex = session.activeStack.indexOf(tokenKey);
@@ -48,7 +48,7 @@ export class Resolver {
     }
 
     if (binding.type === "value") {
-      return Promise.resolve(binding.provider as T);
+      return binding.provider as T;
     }
 
     if (binding.scope === "singleton") {
@@ -66,15 +66,15 @@ export class Resolver {
     return this.execute<T>(binding, tokenKey, session);
   }
 
-  private async execute<T>(
+  private execute<T>(
     binding: Binding<unknown>,
     tokenKey: Token<unknown>,
     session: ResolutionSession,
-  ): Promise<T> {
+  ): T {
     const nextSession = session.push(tokenKey);
     const dependencies = binding.dependencies ?? [];
-    const resolvedArgs = await Promise.all(
-      dependencies.map((dep) => this.resolveWithSession(dep, nextSession)),
+    const resolvedArgs = dependencies.map((dep) =>
+      this.resolveWithSession(dep, nextSession),
     );
 
     if (binding.type === "class") {
@@ -82,7 +82,7 @@ export class Resolver {
       return new Target(...resolvedArgs);
     }
 
-    const factory = binding.provider as (...args: unknown[]) => T | Promise<T>;
-    return await factory(...resolvedArgs);
+    const factory = binding.provider as (...args: unknown[]) => T;
+    return factory(...resolvedArgs);
   }
 }

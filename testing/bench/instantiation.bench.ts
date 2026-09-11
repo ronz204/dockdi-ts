@@ -17,32 +17,29 @@ const FactoryToken = token<{ timestamp: number }>("Factory");
 const ValueToken = token<string>("Value");
 
 const container = new Container();
-container.bind(RepoToken).toClass(UserRepo, []).inSingletonScope();
-container
-  .bind(ServiceToken)
-  .toClass(UserService, [RepoToken])
-  .inTransientScope();
+container.bind(RepoToken).toClass(UserRepo).inSingleton();
+container.bind(ServiceToken).toClass(UserService, [RepoToken]).inTransient();
 container
   .bind(FactoryToken)
-  .toFactory(() => ({ timestamp: 123 }), [])
-  .inTransientScope();
+  .toFactory(() => ({ timestamp: 123 }))
+  .inTransient();
 container.bind(ValueToken).toValue("static-value");
 
 group("Instantiation Providers Comparison", () => {
   bench("toClass instantiation with dependency", () => {
-    container.resolve(ServiceToken);
+    container.get(ServiceToken);
   });
 
   bench("toFactory execution", () => {
-    container.resolve(FactoryToken);
+    container.get(FactoryToken);
   });
 
   bench("toValue lookup", () => {
-    container.resolve(ValueToken);
+    container.get(ValueToken);
   });
 
   bench("toClass singleton cache hit", () => {
-    container.resolve(RepoToken);
+    container.get(RepoToken);
   });
 });
 

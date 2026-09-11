@@ -13,22 +13,22 @@ class Car {
 }
 
 describe("Container Public Facade", () => {
-  it("binds and resolves class instances with dependencies", () => {
+  it("binds and resolves class instances with dependencies via get()", () => {
     const EngineToken = token<Engine>("Engine");
     const CarToken = token<Car>("Car");
 
     const container = new Container();
-    container.bind(EngineToken).toClass(Engine, []).inSingletonScope();
+    container.bind(EngineToken).toClass(Engine).inSingleton();
     container.bind(CarToken).toClass(Car, [EngineToken]);
 
-    const car = container.resolve(CarToken);
+    const car = container.get(CarToken);
     expect(car).toBeInstanceOf(Car);
     expect(car.engine).toBeInstanceOf(Engine);
 
     car.engine.start();
     expect(car.engine.started).toBe(true);
 
-    const car2 = container.resolve(CarToken);
+    const car2 = container.get(CarToken);
     expect(car2.engine.started).toBe(true);
     expect(car2.engine).toBe(car.engine);
   });
@@ -39,17 +39,17 @@ describe("Container Public Facade", () => {
 
     container.bind(ConfigToken).toValue({ port: 8080 });
 
-    const config = container.resolve(ConfigToken);
+    const config = container.get(ConfigToken);
     expect(config.port).toBe(8080);
   });
 
-  it("binds factories", () => {
+  it("binds factories with zero-arg inference", () => {
     const FactoryDataToken = token<string>("FactoryData");
     const container = new Container();
 
-    container.bind(FactoryDataToken).toFactory(() => "factory-payload", []);
+    container.bind(FactoryDataToken).toFactory(() => "factory-payload");
 
-    const data = container.resolve(FactoryDataToken);
+    const data = container.get(FactoryDataToken);
     expect(data).toBe("factory-payload");
   });
 
@@ -60,18 +60,43 @@ describe("Container Public Facade", () => {
 
     container
       .bind(CounterToken)
-      .toFactory(() => ({ id: ++count }), [])
-      .inSingletonScope();
+      .toFactory(() => ({ id: ++count }))
+      .inSingleton();
 
-    const first = container.resolve(CounterToken);
+    const first = container.get(CounterToken);
     expect(first.id).toBe(1);
 
-    const cached = container.resolve(CounterToken);
+    const cached = container.get(CounterToken);
     expect(cached.id).toBe(1);
 
     container.reset();
 
-    const recreated = container.resolve(CounterToken);
+    const recreated = container.get(CounterToken);
     expect(recreated.id).toBe(2);
+  });
+
+  it("supports has() to check token registration", () => {
+    const BoundToken = token<string>("Bound");
+    const UnboundToken = token<string>("Unbound");
+    const container = new Container();
+
+    container.bind(BoundToken).toValue("present");
+
+    expect(container.has(BoundToken)).toBe(true);
+    expect(container.has(UnboundToken)).toBe(false);
+  });
+
+  it("loads modular definitions via load()", () => {
+    const TokenA = token<string>("TokenA");
+    const TokenB = token<string>("TokenB");
+    const container = new Container();
+
+    container.load(
+      (c) => c.bind(TokenA).toValue("moduleA"),
+      (c) => c.bind(TokenB).toValue("moduleB"),
+    );
+
+    expect(container.get(TokenA)).toBe("moduleA");
+    expect(container.get(TokenB)).toBe("moduleB");
   });
 });

@@ -54,6 +54,15 @@ describe("Branded Token (Token<T>)", () => {
       expect(set.has(t1)).toBe(true);
       expect(set.has(t2)).toBe(true);
     });
+
+    it("infers token from class constructor automatically", () => {
+      class SampleService {}
+      const sampleToken = token(SampleService);
+
+      expect(typeof sampleToken).toBe("symbol");
+      expect(sampleToken.description).toBe("SampleService");
+      expect(sampleToken.toString()).toBe("Symbol(SampleService)");
+    });
   });
 
   describe("Static Type System Constraints", () => {

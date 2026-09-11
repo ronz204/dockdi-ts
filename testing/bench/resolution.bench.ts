@@ -9,30 +9,30 @@ let count = 0;
 const container = new Container();
 container
   .bind(TransientToken)
-  .toFactory(() => ({ id: ++count }), [])
-  .inTransientScope();
+  .toFactory(() => ({ id: ++count }))
+  .inTransient();
 container
   .bind(SingletonToken)
-  .toFactory(() => ({ id: ++count }), [])
-  .inSingletonScope();
+  .toFactory(() => ({ id: ++count }))
+  .inSingleton();
 container
   .bind(ResolutionToken)
-  .toFactory(() => ({ id: ++count }), [])
-  .inResolutionScope();
+  .toFactory(() => ({ id: ++count }))
+  .inResolution();
 
-container.resolve(SingletonToken);
+container.get(SingletonToken);
 
 group("Scope Resolution Comparison", () => {
   bench("transient resolution", () => {
-    container.resolve(TransientToken);
+    container.get(TransientToken);
   });
 
   bench("singleton resolution (warm cache)", () => {
-    container.resolve(SingletonToken);
+    container.get(SingletonToken);
   });
 
   bench("resolution scope resolution", () => {
-    container.resolve(ResolutionToken);
+    container.get(ResolutionToken);
   });
 });
 

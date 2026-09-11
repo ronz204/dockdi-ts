@@ -28,15 +28,15 @@ describe("Integration: Diamond Dependency Graph", () => {
     const AToken = token<ServiceA>("A");
 
     const container = new Container();
-    container.bind(DToken).toClass(ServiceD, []).inSingletonScope();
+    container.bind(DToken).toClass(ServiceD).inSingleton();
     container.bind(BToken).toClass(ServiceB, [DToken]);
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = container.resolve(AToken);
+    const a1 = container.get(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = container.resolve(AToken);
+    const a2 = container.get(AToken);
     expect(a2.b.d).toBe(a1.b.d);
   });
 
@@ -47,15 +47,15 @@ describe("Integration: Diamond Dependency Graph", () => {
     const AToken = token<ServiceA>("A");
 
     const container = new Container();
-    container.bind(DToken).toClass(ServiceD, []).inResolutionScope();
+    container.bind(DToken).toClass(ServiceD).inResolution();
     container.bind(BToken).toClass(ServiceB, [DToken]);
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = container.resolve(AToken);
+    const a1 = container.get(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = container.resolve(AToken);
+    const a2 = container.get(AToken);
     expect(a2.b.d).toBe(a2.c.d);
     expect(a1.b.d).not.toBe(a2.b.d);
   });
@@ -67,12 +67,12 @@ describe("Integration: Diamond Dependency Graph", () => {
     const AToken = token<ServiceA>("A");
 
     const container = new Container();
-    container.bind(DToken).toClass(ServiceD, []).inTransientScope();
+    container.bind(DToken).toClass(ServiceD).inTransient();
     container.bind(BToken).toClass(ServiceB, [DToken]);
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a = container.resolve(AToken);
+    const a = container.get(AToken);
     expect(a.b.d).not.toBe(a.c.d);
   });
 });

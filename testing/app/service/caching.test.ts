@@ -1,11 +1,11 @@
-import { ResolutionStorage, SingletonStorage } from "@service/caching";
+import { ResolutionCache, SingletonCache } from "@service/caching";
 import { token } from "dockdi";
 import { describe, expect, it } from "vitest";
 
 describe("Caching and Lifecycle Storage", () => {
-  describe("SingletonStorage", () => {
+  describe("SingletonCache", () => {
     it("caches resolved instance upon first execution", () => {
-      const storage = new SingletonStorage();
+      const storage = new SingletonCache();
       const t = token<object>("obj");
       let count = 0;
 
@@ -23,23 +23,8 @@ describe("Caching and Lifecycle Storage", () => {
       expect(first).toBe(second);
     });
 
-    it("invalidates cached instance on invalidate()", () => {
-      const storage = new SingletonStorage();
-      const t = token<{ count: number }>("obj");
-      let count = 0;
-
-      const first = storage.remember(t, () => ({ count: ++count }));
-      expect(first.count).toBe(1);
-
-      storage.invalidate(t);
-
-      const second = storage.remember(t, () => ({ count: ++count }));
-      expect(second.count).toBe(2);
-      expect(first).not.toBe(second);
-    });
-
     it("clears cached instances on clear()", () => {
-      const storage = new SingletonStorage();
+      const storage = new SingletonCache();
       const t = token<number>("counter");
       let count = 0;
 
@@ -51,11 +36,39 @@ describe("Caching and Lifecycle Storage", () => {
       storage.remember(t, () => ++count);
       expect(count).toBe(2);
     });
+
+    it("invokes dispose() and [Symbol.dispose]() upon clear()", () => {
+      const storage = new SingletonCache();
+      let disposed1 = false;
+      let disposed2 = false;
+
+      const t1 = token<object>("obj1");
+      const t2 = token<object>("obj2");
+
+      storage.remember(t1, () => ({
+        dispose() {
+          disposed1 = true;
+        },
+      }));
+
+      storage.remember(t2, () => ({
+        [Symbol.dispose]() {
+          disposed2 = true;
+        },
+      }));
+
+      expect(disposed1).toBe(false);
+      expect(disposed2).toBe(false);
+
+      storage.clear();
+      expect(disposed1).toBe(true);
+      expect(disposed2).toBe(true);
+    });
   });
 
-  describe("ResolutionStorage", () => {
+  describe("ResolutionCache", () => {
     it("shares instance during resolution lifecycle", () => {
-      const storage = new ResolutionStorage();
+      const storage = new ResolutionCache();
       const t = token<object>("resolution");
       let factoryCalls = 0;
 

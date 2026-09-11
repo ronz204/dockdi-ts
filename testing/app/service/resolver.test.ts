@@ -1,8 +1,9 @@
 import type { Binding } from "@core/binding";
-import { SingletonStorage } from "@service/caching";
+import { SingletonCache } from "@service/caching";
 import { Resolver } from "@service/resolver";
 import {
   CircularDependencyError,
+  InstantiationError,
   MissingTokenError,
   type Token,
   token,
@@ -12,7 +13,7 @@ import { describe, expect, it } from "vitest";
 describe("Resolver Engine", () => {
   it("resolves constant value binding", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
-    const storage = new SingletonStorage();
+    const storage = new SingletonCache();
     const resolver = new Resolver(registry, storage);
 
     const t = token<string>("val");
@@ -24,7 +25,7 @@ describe("Resolver Engine", () => {
 
   it("throws MissingTokenError when token is not registered", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
-    const storage = new SingletonStorage();
+    const storage = new SingletonCache();
     const resolver = new Resolver(registry, storage);
 
     const t = token<string>("missing");
@@ -33,7 +34,7 @@ describe("Resolver Engine", () => {
 
   it("detects circular dependency and throws CircularDependencyError", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
-    const storage = new SingletonStorage();
+    const storage = new SingletonCache();
     const resolver = new Resolver(registry, storage);
 
     const tokenA = token<unknown>("A");
@@ -43,14 +44,14 @@ describe("Resolver Engine", () => {
       type: "factory",
       scope: "transient",
       provider: (b: unknown) => ({ b }),
-      dependencies: [tokenB],
+      deps: [tokenB],
     });
 
     registry.set(tokenB, {
       type: "factory",
       scope: "transient",
       provider: (a: unknown) => ({ a }),
-      dependencies: [tokenA],
+      deps: [tokenA],
     });
 
     expect(() => resolver.resolve(tokenA)).toThrow(CircularDependencyError);
@@ -58,7 +59,7 @@ describe("Resolver Engine", () => {
 
   it("resolves sibling dependencies synchronously", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
-    const storage = new SingletonStorage();
+    const storage = new SingletonCache();
     const resolver = new Resolver(registry, storage);
 
     const dep1 = token<number>("dep1");
@@ -81,10 +82,27 @@ describe("Resolver Engine", () => {
       type: "factory",
       scope: "transient",
       provider: (a: unknown, b: unknown) => (a as number) + (b as number),
-      dependencies: [dep1, dep2],
+      deps: [dep1, dep2],
     });
 
     const sum = resolver.resolve(root);
     expect(sum).toBe(30);
+  });
+
+  it("wraps provider instantiation failures in InstantiationError", () => {
+    const registry = new Map<Token<unknown>, Binding<unknown>>();
+    const storage = new SingletonCache();
+    const resolver = new Resolver(registry, storage);
+
+    const failToken = token<unknown>("Failing");
+    registry.set(failToken, {
+      type: "factory",
+      scope: "transient",
+      provider: () => {
+        throw new Error("Initialization crashed");
+      },
+    });
+
+    expect(() => resolver.resolve(failToken)).toThrow(InstantiationError);
   });
 });

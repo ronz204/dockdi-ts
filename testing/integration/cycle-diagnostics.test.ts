@@ -11,7 +11,7 @@ describe("Integration: Circular Dependency Diagnostics", () => {
     container.bind(TokenB).toFactory((a) => ({ a }), [TokenA]);
 
     try {
-      container.resolve(TokenA);
+      container.get(TokenA);
       expect.unreachable("should have thrown CircularDependencyError");
     } catch (err) {
       expect(err).toBeInstanceOf(CircularDependencyError);
@@ -36,7 +36,7 @@ describe("Integration: Circular Dependency Diagnostics", () => {
     container.bind(TokenC).toFactory((a) => ({ a }), [TokenA]);
 
     try {
-      container.resolve(RootToken);
+      container.get(RootToken);
       expect.unreachable("should have thrown CircularDependencyError");
     } catch (err) {
       expect(err).toBeInstanceOf(CircularDependencyError);

@@ -15,7 +15,7 @@ function createChainContainer(depth: number): {
     previous = current;
   }
 
-  container.bind(previous).toFactory(() => "leaf", []);
+  container.bind(previous).toFactory(() => "leaf");
 
   return { container, root };
 }
@@ -26,15 +26,15 @@ const chain50 = createChainContainer(50);
 
 group("Linear Chain Depth Resolution", () => {
   bench("depth 10", () => {
-    chain10.container.resolve(chain10.root);
+    chain10.container.get(chain10.root);
   });
 
   bench("depth 25", () => {
-    chain25.container.resolve(chain25.root);
+    chain25.container.get(chain25.root);
   });
 
   bench("depth 50", () => {
-    chain50.container.resolve(chain50.root);
+    chain50.container.get(chain50.root);
   });
 });
 

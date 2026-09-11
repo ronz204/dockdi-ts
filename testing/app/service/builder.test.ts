@@ -19,12 +19,12 @@ describe("RegistryBuilder", () => {
     expect(record?.provider).toBe("production");
   });
 
-  it("binds classes and configures scope", () => {
+  it("binds classes and configures scope with zero-arg inference", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const t = token<ExampleService>("service");
     const builder = new RegistryBuilder(t, registry);
 
-    builder.toClass(ExampleService, []).inSingletonScope();
+    builder.toClass(ExampleService).inSingleton();
 
     const record = registry.get(t);
     expect(record?.type).toBe("class");
@@ -32,13 +32,13 @@ describe("RegistryBuilder", () => {
     expect(record?.provider).toBe(ExampleService);
   });
 
-  it("binds factories and configures scope", () => {
+  it("binds factories and configures scope with zero-arg inference", () => {
     const registry = new Map<Token<unknown>, Binding<unknown>>();
     const t = token<number>("factory");
     const builder = new RegistryBuilder(t, registry);
     const factoryFn = () => 42;
 
-    builder.toFactory(factoryFn, []).inResolutionScope();
+    builder.toFactory(factoryFn).inResolution();
 
     const record = registry.get(t);
     expect(record?.type).toBe("factory");

@@ -1,4 +1,4 @@
-import type { BindingBuilder, ScopedBindingBuilder, ScopeType } from "dockdi";
+import type { BindingBuilder, ScopeBuilder, ScopeType } from "dockdi";
 import { expectTypeOf } from "expect-type";
 import { describe, it } from "vitest";
 
@@ -9,10 +9,10 @@ describe("Binding Types and Interfaces", () => {
     >();
   });
 
-  it("ensures ScopedBindingBuilder defines all scope configuration methods", () => {
-    expectTypeOf<ScopedBindingBuilder>().toHaveProperty("inSingletonScope");
-    expectTypeOf<ScopedBindingBuilder>().toHaveProperty("inTransientScope");
-    expectTypeOf<ScopedBindingBuilder>().toHaveProperty("inResolutionScope");
+  it("ensures ScopeBuilder defines all scope configuration methods", () => {
+    expectTypeOf<ScopeBuilder>().toHaveProperty("inSingleton");
+    expectTypeOf<ScopeBuilder>().toHaveProperty("inTransient");
+    expectTypeOf<ScopeBuilder>().toHaveProperty("inResolution");
   });
 
   it("ensures BindingBuilder defines toValue, toClass and toFactory", () => {

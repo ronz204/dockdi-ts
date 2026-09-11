@@ -64,6 +64,23 @@ describe("Caching and Lifecycle Storage", () => {
       expect(disposed1).toBe(true);
       expect(disposed2).toBe(true);
     });
+
+    it("evicts a cached instance whose value is undefined", () => {
+      const storage = new SingletonCache();
+      const t = token<unknown>("undef");
+
+      storage.remember(t, () => undefined);
+      storage.delete(t);
+
+      let calls = 0;
+      const result = storage.remember(t, () => {
+        calls++;
+        return "replaced";
+      });
+
+      expect(calls).toBe(1);
+      expect(result).toBe("replaced");
+    });
   });
 
   describe("ResolutionCache", () => {

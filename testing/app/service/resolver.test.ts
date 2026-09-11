@@ -2,6 +2,7 @@ import type { Binding } from "@core/binding";
 import { SingletonCache } from "@service/caching";
 import { Resolver } from "@service/resolver";
 import {
+  BindingConflictError,
   CircularDependencyError,
   InstantiationError,
   MissingTokenError,
@@ -104,5 +105,48 @@ describe("Resolver Engine", () => {
     });
 
     expect(() => resolver.resolve(failToken)).toThrow(InstantiationError);
+  });
+
+  it("stringifies a non-Error value thrown during instantiation", () => {
+    const registry = new Map<Token<unknown>, Binding<unknown>>();
+    const storage = new SingletonCache();
+    const resolver = new Resolver(registry, storage);
+
+    const failToken = token<unknown>("FailingLiteral");
+    registry.set(failToken, {
+      type: "factory",
+      scope: "transient",
+      provider: () => {
+        throw { code: "boom" };
+      },
+    });
+
+    try {
+      resolver.resolve(failToken);
+      expect.unreachable("should have thrown InstantiationError");
+    } catch (err) {
+      expect(err).toBeInstanceOf(InstantiationError);
+      const instantiationError = err as InstantiationError;
+      expect(instantiationError.cause).toEqual({ code: "boom" });
+      expect(instantiationError.message).toContain("Failed to instantiate");
+    }
+  });
+
+  it("propagates a DockdiError thrown inside a provider without wrapping it", () => {
+    const registry = new Map<Token<unknown>, Binding<unknown>>();
+    const storage = new SingletonCache();
+    const resolver = new Resolver(registry, storage);
+
+    const innerToken = token<unknown>("Inner");
+    const failToken = token<unknown>("FailingDockdiError");
+    registry.set(failToken, {
+      type: "factory",
+      scope: "transient",
+      provider: () => {
+        throw new BindingConflictError(innerToken);
+      },
+    });
+
+    expect(() => resolver.resolve(failToken)).toThrow(BindingConflictError);
   });
 });

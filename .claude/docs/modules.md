@@ -83,19 +83,25 @@ export interface Container {
 1. Receives the requested token and creates a fresh per-call trace (active resolution stack plus a resolution-scoped cache). The resolver `resolve()` was originally called on runs the entire call tree below — it never hands execution to a different resolver instance.
 2. Checks whether the token is already in the active resolution stack; if present, aborts immediately by throwing `CircularDependencyError` detailing the cycle chain.
 3. Walks from itself up through ancestor resolvers (via `Container.scope()`'s parent link) to find the first one whose own registry has the token; throws `MissingTokenError` with the current resolution path if none do. Restarting this walk from the original resolver on every dependency lookup — rather than from whichever ancestor happens to own the current binding — is what lets a scope-local override stay visible through a binding it inherits from an ancestor.
-4. Value bindings return their stored value immediately, bypassing all caching.
-5. Checks its own singleton cache if the binding specifies singleton scope; returns the cached instance if found, otherwise instantiates and caches it there. Caching always happens on the resolver `resolve()` was originally called on, never on the ancestor that owns the binding — so a singleton built using a scope-local override never leaks into that ancestor's own cache.
-6. Checks the resolution-scoped cache (unique to this top-level `resolve()` call) if the binding specifies resolution scope; returns the cached instance if found, otherwise instantiates and caches it there for the remainder of this resolution.
-7. Transient bindings instantiate fresh on every resolution, with no caching.
-8. If dependencies are declared, recursively resolves each child dependency token synchronously before instantiating.
-9. Instantiates the target class or evaluates the synchronous factory using the resolved child instances, wrapping any non-`DockdiError` thrown during instantiation in `InstantiationError`.
-10. Returns the constructed instance `T` synchronously.
+4. Value bindings return their stored value immediately, bypassing all caching, and are always considered "shared" (see step 6).
+5. For a singleton binding: checks the original resolver's own cache first (a previously-tainted local copy, if one exists), then the binding owner's cache (the normal, shared copy); returns whichever is found. On a full miss, builds the instance and caches it in the owner's cache if the build turned out to be shareable, or in the original resolver's own cache otherwise — see step 6 for how that's decided.
+6. Building any non-value binding tracks whether the result is "shared": true only if every dependency was itself shared, and each dependency's binding was found by the same owner the original resolver found it by (i.e. no dependency resolution was redirected to a closer, scope-local override anywhere in the chain, even transitively through a non-singleton binding). A build that isn't shared must never be cached on the binding's owner, since that owner is visible to sibling scopes and the parent that never asked for the override.
+7. Checks the resolution-scoped cache (unique to this top-level `resolve()` call) if the binding specifies resolution scope; returns the cached instance if found, otherwise builds and caches it there for the remainder of this resolution.
+8. Transient bindings instantiate fresh on every resolution, with no caching.
+9. If dependencies are declared, recursively resolves each child dependency token synchronously before instantiating.
+10. Instantiates the target class or evaluates the synchronous factory using the resolved child instances, wrapping any non-`DockdiError` thrown during instantiation in `InstantiationError`.
+11. Returns the constructed instance `T` synchronously.
 
 **Data shape.**
 ```typescript
 class Trace {
   readonly stack: Token<unknown>[];
   readonly cache: ResolutionCache;
+}
+
+interface Resolved<T> {
+  value: T;
+  shared: boolean;
 }
 ```
 

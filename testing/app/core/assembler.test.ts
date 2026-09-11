@@ -30,9 +30,23 @@ describe("Constructor and Tokens Type Mappings", () => {
   });
 
   it("configures optional argument tuple for zero-arg constructors", () => {
-    expectTypeOf<TokensArg<[]>>().toEqualTypeOf<[tokens?: []]>();
     expectTypeOf<TokensArg<[string]>>().toEqualTypeOf<
       [tokens: readonly [Token<string>]]
     >();
+  });
+
+  it("allows omitting the tokens tuple when every constructor argument is optional", () => {
+    function bindTokens<Args extends readonly unknown[]>(
+      ..._tokens: TokensArg<Args>
+    ): void {}
+
+    bindTokens<[]>();
+    bindTokens<[string?]>();
+    bindTokens<[string?]>([]);
+    bindTokens<[string?, number?]>();
+    // @ts-expect-error a required constructor argument still needs its token
+    bindTokens<[string]>();
+    // @ts-expect-error a required argument followed by an optional one still needs its token
+    bindTokens<[string, number?]>();
   });
 });

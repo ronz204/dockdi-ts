@@ -97,7 +97,8 @@ export class Container {
 - **Immutable registration**: Once bound, a token cannot be re-registered via `bind()`. Attempting to register an already bound token throws `BindingConflictError`.
 - **Transient isolation**: Under default transient scope, resolving a class or factory produces distinct instances on successive resolution invocations.
 - **Singleton identity**: Under singleton scope, resolving the same token on the same container (or the same scope) always returns the identical cached instance.
-- **Scope isolation**: A child container's own registrations and locally-cached singletons are never visible to, and never mutate, its parent — even when a singleton built through a child-local override is transitively required by a binding the child inherited from the parent.
+- **Scope isolation**: A child container's own registrations and locally-cached singletons are never visible to, and never mutate, its parent — even when a singleton built through a child-local override is transitively (including through a non-singleton intermediary) required by a binding the child inherited from the parent.
+- **Scope sharing**: A child container that resolves a singleton it inherits from an ancestor, without any local override affecting that singleton's build anywhere in its dependency chain, shares the identical cached instance with that ancestor and with any sibling scope resolving the same, equally unaffected, singleton.
 - **Zero production dependencies**: The container uses native JavaScript `Map` and standard language constructs without external runtime packages.
 - **Declaration isolation**: The `Container` class, `BindingBuilder`, and public types include explicit type annotations compatible with `isolatedDeclarations: true`.
 
@@ -114,7 +115,8 @@ None currently — bind/override/has/scope/load/resolve/reset and the transient/
 - Calling `container.resolve(token)` multiple times for transient bindings returns distinct object references.
 - Calling `container.bind(token)` twice for the same token throws `BindingConflictError`.
 - Calling `container.override(token)` on a token never bound in the container or its ancestors throws `MissingTokenError`.
-- A `container.scope()` child's local override of an inherited singleton dependency is visible within that scope but never mutates the parent's own cached instance or a sibling scope's.
+- A `container.scope()` child's local override of an inherited singleton dependency is visible within that scope but never mutates the parent's own cached instance or a sibling scope's, including when the override is only reached transitively through a transient intermediary.
+- A `container.scope()` child that resolves an inherited singleton with no override anywhere in its dependency chain shares the identical instance with the parent and with an equally unaffected sibling scope.
 - Static type tests verify compile errors when passing incompatible types to `toValue`, `toClass`, or `toFactory`.
 - `bun test`, `bun run test`, `bun run typecheck`, and `bun run lint` succeed with 0 errors.
 

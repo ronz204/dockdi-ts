@@ -10,4 +10,4 @@ export type Tokens<Args extends readonly unknown[]> = {
 };
 
 export type TokensArg<Args extends readonly unknown[]> =
-  Args["length"] extends 0 ? [tokens?: []] : [tokens: Tokens<Args>];
+  0 extends Args["length"] ? [tokens?: Tokens<Args>] : [tokens: Tokens<Args>];

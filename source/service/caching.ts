@@ -15,6 +15,14 @@ function dispose(target: unknown): void {
 export class InstanceCache {
   protected readonly instances: Map<Token<unknown>, unknown> = new Map();
 
+  public has(token: Token<unknown>): boolean {
+    return this.instances.has(token as Token<unknown>);
+  }
+
+  public get<T>(token: Token<T>): T {
+    return this.instances.get(token as Token<unknown>) as T;
+  }
+
   public remember<T>(token: Token<T>, create: () => T): T {
     const key = token as Token<unknown>;
     let instance = this.instances.get(key);

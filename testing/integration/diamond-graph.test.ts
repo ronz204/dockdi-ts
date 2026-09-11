@@ -33,10 +33,10 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = container.get(AToken);
+    const a1 = container.resolve(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = container.get(AToken);
+    const a2 = container.resolve(AToken);
     expect(a2.b.d).toBe(a1.b.d);
   });
 
@@ -52,10 +52,10 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a1 = container.get(AToken);
+    const a1 = container.resolve(AToken);
     expect(a1.b.d).toBe(a1.c.d);
 
-    const a2 = container.get(AToken);
+    const a2 = container.resolve(AToken);
     expect(a2.b.d).toBe(a2.c.d);
     expect(a1.b.d).not.toBe(a2.b.d);
   });
@@ -72,7 +72,7 @@ describe("Integration: Diamond Dependency Graph", () => {
     container.bind(CToken).toClass(ServiceC, [DToken]);
     container.bind(AToken).toClass(ServiceA, [BToken, CToken]);
 
-    const a = container.get(AToken);
+    const a = container.resolve(AToken);
     expect(a.b.d).not.toBe(a.c.d);
   });
 });

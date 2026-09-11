@@ -33,7 +33,7 @@ describe("Integration: Resolution Lifecycle and Multi-Tiered Graphs", () => {
       )
       .inSingleton();
 
-    const app = container.get(AppToken);
+    const app = container.resolve(AppToken);
     expect(app.ready).toBe(true);
     expect(app.db).toBe("postgres://ready");
     expect(app.cache).toBe("redis://connected");
@@ -124,11 +124,11 @@ describe("Integration: Resolution Lifecycle and Multi-Tiered Graphs", () => {
       [BranchAToken, BranchBToken],
     );
 
-    const first = container.get(RootToken);
+    const first = container.resolve(RootToken);
     expect(first.r1).toBe(first.r2);
     expect(first.t1).not.toBe(first.t2);
 
-    const second = container.get(RootToken);
+    const second = container.resolve(RootToken);
     expect(second.s).toBe(first.s);
     expect(second.r1).not.toBe(first.r1);
     expect(second.r1).toBe(second.r2);

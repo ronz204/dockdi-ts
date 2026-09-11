@@ -27,19 +27,19 @@ container.bind(ValueToken).toValue("static-value");
 
 group("Instantiation Providers Comparison", () => {
   bench("toClass instantiation with dependency", () => {
-    container.get(ServiceToken);
+    container.resolve(ServiceToken);
   });
 
   bench("toFactory execution", () => {
-    container.get(FactoryToken);
+    container.resolve(FactoryToken);
   });
 
   bench("toValue lookup", () => {
-    container.get(ValueToken);
+    container.resolve(ValueToken);
   });
 
   bench("toClass singleton cache hit", () => {
-    container.get(RepoToken);
+    container.resolve(RepoToken);
   });
 });
 

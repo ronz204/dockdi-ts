@@ -20,19 +20,19 @@ container
   .toFactory(() => ({ id: ++count }))
   .inResolution();
 
-container.get(SingletonToken);
+container.resolve(SingletonToken);
 
 group("Scope Resolution Comparison", () => {
   bench("transient resolution", () => {
-    container.get(TransientToken);
+    container.resolve(TransientToken);
   });
 
   bench("singleton resolution (warm cache)", () => {
-    container.get(SingletonToken);
+    container.resolve(SingletonToken);
   });
 
   bench("resolution scope resolution", () => {
-    container.get(ResolutionToken);
+    container.resolve(ResolutionToken);
   });
 });
 

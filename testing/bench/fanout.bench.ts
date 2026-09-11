@@ -25,15 +25,15 @@ const fanout30 = createFanoutContainer(30);
 
 group("Fan-out Dependency Resolution", () => {
   bench("fan-out 5 dependencies", () => {
-    fanout5.container.get(fanout5.root);
+    fanout5.container.resolve(fanout5.root);
   });
 
   bench("fan-out 15 dependencies", () => {
-    fanout15.container.get(fanout15.root);
+    fanout15.container.resolve(fanout15.root);
   });
 
   bench("fan-out 30 dependencies", () => {
-    fanout30.container.get(fanout30.root);
+    fanout30.container.resolve(fanout30.root);
   });
 });
 

@@ -24,6 +24,14 @@ export class InstanceCache {
     }
     return instance as T;
   }
+
+  public delete(token: Token<unknown>): void {
+    const key = token as Token<unknown>;
+    if (this.instances.has(key)) {
+      dispose(this.instances.get(key));
+      this.instances.delete(key);
+    }
+  }
 }
 
 export class ResolutionCache extends InstanceCache {}

@@ -9,9 +9,8 @@ import {
 } from "@errors/catalog";
 import { ResolutionCache, type SingletonCache } from "./caching";
 
-class ResolutionContext {
+class Trace {
   public readonly stack: Token<unknown>[] = [];
-  public readonly set: Set<Token<unknown>> = new Set();
   public readonly cache: ResolutionCache = new ResolutionCache();
 }
 
@@ -19,70 +18,64 @@ export class Resolver {
   constructor(
     private readonly registry: Map<Token<unknown>, Binding<unknown>>,
     private readonly singletons: SingletonCache,
+    private readonly parent?: Resolver | undefined,
   ) {}
 
   public resolve<T>(token: Token<T>): T {
-    return this.resolveWithContext(token, new ResolutionContext());
+    return this.visit(token, new Trace());
   }
 
-  private resolveWithContext<T>(
-    token: Token<T>,
-    context: ResolutionContext,
-  ): T {
-    const key = token as Token<unknown>;
-
-    if (context.set.has(key)) {
-      const cycle = [...context.stack.slice(context.stack.indexOf(key)), key];
-      throw new CircularDependencyError(cycle);
+  private visit<T>(token: Token<T>, trace: Trace): T {
+    if (trace.stack.includes(token)) {
+      throw new CircularDependencyError([
+        ...trace.stack.slice(trace.stack.indexOf(token)),
+        token,
+      ]);
     }
 
-    const binding = this.registry.get(key);
-    if (!binding) {
-      throw new MissingTokenError(key, context.stack);
-    }
+    const owner = this.owner(token);
+    if (!owner) throw new MissingTokenError(token, trace.stack);
+    const binding = owner.registry.get(token) as Binding<unknown>;
 
-    if (binding.type === "value") {
-      return binding.provider as T;
-    }
+    if (binding.type === "value") return binding.provider as T;
 
-    if (binding.scope === "singleton") {
-      return this.singletons.remember(token, () =>
-        this.execute<T>(binding, key, context),
-      );
+    const build = () => this.execute<T>(binding, token, trace);
+    switch (binding.scope) {
+      case "singleton":
+        return this.singletons.remember(token, build);
+      case "resolution":
+        return trace.cache.remember(token, build);
+      default:
+        return build();
     }
+  }
 
-    if (binding.scope === "resolution") {
-      return context.cache.remember(token, () =>
-        this.execute<T>(binding, key, context),
-      );
+  private owner(token: Token<unknown>): Resolver | undefined {
+    let resolver: Resolver | undefined = this;
+    while (resolver && !resolver.registry.has(token)) {
+      resolver = resolver.parent;
     }
-
-    return this.execute<T>(binding, key, context);
+    return resolver;
   }
 
   private execute<T>(
     binding: Binding<unknown>,
-    key: Token<unknown>,
-    context: ResolutionContext,
+    token: Token<unknown>,
+    trace: Trace,
   ): T {
-    context.stack.push(key);
-    context.set.add(key);
-
+    trace.stack.push(token);
     try {
-      const args =
-        binding.deps?.map((dep) => this.resolveWithContext(dep, context)) ?? [];
-
+      const args = binding.deps?.map((dep) => this.visit(dep, trace)) ?? [];
       try {
         return binding.type === "class"
           ? new (binding.provider as Constructor<T, unknown[]>)(...args)
           : (binding.provider as (...args: unknown[]) => T)(...args);
       } catch (cause) {
         if (cause instanceof DockdiError) throw cause;
-        throw new InstantiationError(key, context.stack.slice(0, -1), cause);
+        throw new InstantiationError(token, trace.stack.slice(0, -1), cause);
       }
     } finally {
-      context.stack.pop();
-      context.set.delete(key);
+      trace.stack.pop();
     }
   }
 }

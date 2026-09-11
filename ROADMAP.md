@@ -9,9 +9,9 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | Fase | Descripción | Estado |
 |---|---|---|
 | **Fase 0** | Mecanismo central y validación (Constructor ↔ Tokens) | 🟢 Completada |
-| **Fase 1** | Core container & Resolución unificada (`bind`, `resolve`, Transient, sync/async) | 🟢 Completada |
-| **Fase 2** | Ciclo de vida y Scopes (Singleton con deduplicación de promesas, Resolution Scope) | 🟢 Completada |
-| **Fase 3** | DX de errores (Ciclos con traza completa sync/async y sugerencias) | 🟢 Completada |
+| **Fase 1** | Core container & Resolución síncrona (`bind`, `resolve`, Transient, clases, factorías y valores) | 🟢 Completada |
+| **Fase 2** | Ciclo de vida y Scopes (Singleton síncrono, Resolution Scope) | 🟢 Completada |
+| **Fase 3** | DX de errores (Ciclos con traza completa síncrona y sugerencias Levenshtein) | 🟢 Completada |
 | **Fase 4** | Utilidades de testing (Mocking y Overrides) | 🟢 Completada |
 | **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
 | **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
@@ -40,28 +40,27 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ---
 
-## Fase 1 — Core Container & Resolución Unificada
+## Fase 1 — Core Container & Resolución Síncrona
 
-**Objetivo**: Construir el contenedor básico de inyección de dependencias con soporte nativo y unificado para factorías síncronas y asíncronas bajo scope `transient`, ofreciendo `container.resolve()` como método de resolución universal.
+**Objetivo**: Construir el contenedor básico de inyección de dependencias con soporte síncrono para clases, factorías y valores bajo scope `transient`, ofreciendo `container.resolve()` como método de resolución directo.
 
-- **Criterio de éxito**: Contenedor funcional con API pública de registro (`bind`, `toValue`, `toClass`, `toFactory` unificado para sync/async) y resolución (`resolve`), que resuelva árboles de dependencias mixtos y falle con errores claros cuando falte un token o se detecte una dependencia circular.
+- **Criterio de éxito**: Contenedor funcional con API pública de registro (`bind`, `toValue`, `toClass`, `toFactory`) y resolución (`resolve`), que resuelva árboles de dependencias en nanosegundos y falle con errores claros cuando falte un token o se detecte una dependencia circular.
 
 ### Tareas
-- [x] **Estructura del Registro Unificado (Completada en `source/service/builder.ts`)**
+- [x] **Estructura del Registro (Completada en `source/service/builder.ts`)**
   - [x] Diseñar e implementar la API fluida de registro `RegistryBuilder<T>` (`source/service/builder.ts`).
   - [x] Soportar binding a valor constante (`toValue(value)`).
   - [x] Soportar binding a clase (`toClass(Constructor, tokens)`).
-  - [x] Soportar binding a factoría polimórfica (`toFactory(factoryFn, tokens)`), aceptando retornos tanto síncronos (`T`) como asíncronos (`Promise<T>`) de forma transparente sin métodos separados.
+  - [x] Soportar binding a factoría síncrona (`toFactory(factoryFn, tokens)`).
   - [x] Prevención de re-binding lanzando `BindingConflictError` al duplicar registro de un token.
 - [x] **Fachada del Container y Motor de Resolución (`container.ts` y `resolver.ts`)**
   - [x] Implementar la clase fachada `Container` con almacenamiento interno de bindings (`Map<Token<unknown>, Binding<unknown>>`).
-  - [x] Implementar `container.resolve(token): Promise<T>` como método universal capaz de resolver dependencias de forma recursiva, esperando promesas en cualquier punto del árbol y ejecutando clases y factorías.
+  - [x] Implementar `container.resolve(token): T` como método de resolución síncrono recursivo en nanosegundos.
   - [x] Aplicar scope `transient` por defecto (cada resolución crea una instancia nueva e independiente).
   - [x] Manejar tokens no registrados lanzando `MissingTokenError` con sugerencias de tokens similares.
 - [x] **Suite de Pruebas de la Fase 1**
   - [x] Tests de resolución de dependencias lineales sincrónicas (`A -> B -> C`).
-  - [x] Tests de resolución con factorías asíncronas mediante `container.resolve()`.
-  - [x] Tests de resolución mixta (clases síncronas que dependen de factorías asíncronas).
+  - [x] Tests de resolución con factorías síncronas mediante `container.resolve()`.
   - [x] Tests validando que múltiples llamadas con scope transient devuelven referencias distintas (`instance1 !== instance2`).
   - [x] Tests de fallo al solicitar tokens inexistentes.
 
@@ -69,40 +68,38 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 
 ## Fase 2 — Ciclo de Vida y Scopes
 
-**Objetivo**: Incorporar políticas de ciclo de vida de instancias (`singleton` y `resolution-scope`) con soporte transparente para factorías asíncronas mediante deduplicación de promesas concurrentes en vuelo.
+**Objetivo**: Incorporar políticas de ciclo de vida de instancias (`singleton` y `resolution-scope`) con almacenamiento síncrono en memoria de alto rendimiento.
 
-- **Criterio de éxito**: Pruebas unitarias que demuestren la preservación exacta de referencias para singletons (tanto síncronos como asíncronos), deduplicación de promesas concurrentes y aislamiento entre llamadas para transient/resolution-scope.
+- **Criterio de éxito**: Pruebas unitarias que demuestren la preservación exacta de referencias para singletons, aislamiento entre llamadas para transient/resolution-scope y purga determinista con `reset()`.
 
 ### Tareas
-- [x] **Scope Singleton con Manejo Asíncrono**
-  - [x] Extender la API de binding para encadenar scopes: `.inSingletonScope()`, `.inTransientScope()`, `.inResolutionScope()` (`BindingRecord` en `source/service/builder.ts`).
-  - [x] Implementar la caché de instancias singleton dentro del contenedor (`singletonCache`).
-  - [x] Implementar deduplicación de promesas en vuelo (*in-flight promise deduplication*) para factorías asíncronas en singleton scope: resoluciones concurrentes comparten la misma promesa.
-  - [x] Asegurar que resoluciones concurrentes o dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
+- [x] **Scope Singleton Síncrono**
+  - [x] Extender la API de binding para encadenar scopes: `.inSingletonScope()`, `.inTransientScope()`, `.inResolutionScope()` (`source/service/builder.ts`).
+  - [x] Implementar la caché síncrona de instancias singleton dentro del almacenamiento (`SingletonStorage`).
+  - [x] Asegurar que dependencias compartidas reutilicen la misma instancia (`instance1 === instance2`).
 - [x] **Scope Resolution (Contextual)**
-  - [x] Implementar contexto de resolución efímero que comparta instancias solo durante el ciclo de ejecución de un único `container.resolve()`.
+  - [x] Implementar contexto de resolución efímero que comparta instancias solo durante la ejecución de una llamada a `container.resolve()`.
 - [x] **Limpieza de Caché**
-  - [x] Implementar `container.reset()` para purgar singletons cacheados y promesas pendientes sin alterar los bindings registrados.
+  - [x] Implementar `container.reset()` para purgar singletons cacheados sin alterar los bindings registrados.
 - [x] **Suite de Pruebas de Ciclo de Vida**
-  - [x] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos dependen del singleton `D`).
-  - [x] Tests de concurrencia para singletons asíncronos verificando que la factoría se ejecuta exactamente una vez.
+  - [x] Tests de identidad referencial en grafos diamante (ej. `A` depende de `B` y `C`, ambos comparten singleton `D`).
   - [x] Tests de resolution scope y tests de `container.reset()`.
 
 ---
 
 ## Fase 3 — Experiencia de Desarrollo (DX) y Diagnóstico de Errores
 
-**Objetivo**: Convertir el manejo de errores en un factor diferenciador clave de `dockdi`: detectar dependencias circulares antes de desbordar el stack en resoluciones asíncronas, y ofrecer mensajes detallados con trazas completas y sugerencias.
+**Objetivo**: Convertir el manejo de errores en un factor diferenciador clave de `dockdi`: detectar dependencias circulares antes de desbordar el call stack, y ofrecer mensajes detallados con trazas completas y sugerencias.
 
-- **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded` ni `UnhandledPromiseRejection`; en su lugar, se lanza un error descriptivo con la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
+- **Criterio de éxito**: Ningún ciclo produce `Maximum call stack size exceeded`; en su lugar, se lanza un error descriptivo inmediato con la secuencia completa del ciclo (ej. `A -> B -> C -> A`).
 
 ### Tareas
 - [x] **Jerarquía y Utilidades de Diagnóstico (Completada en `source/errors/`)**
-  - [x] Crear jerarquía de clases de error dedicadas (`DockdiError`, `BindingConflictError`, `CircularDependencyError`, `MissingTokenError`, `AsyncBindingError` en `source/errors/catalog.ts`).
+  - [x] Crear jerarquía de clases de error dedicadas (`DockdiError`, `BindingConflictError`, `CircularDependencyError`, `MissingTokenError` en `source/errors/catalog.ts`).
   - [x] Formatear el mensaje de ciclo mostrando la ruta completa: `Token[A] -> Token[B] -> Token[C] -> Token[A]` (`source/errors/helpers.ts`).
   - [x] En errores de token faltante (`MissingTokenError`), inspeccionar el registro y sugerir tokens con descripciones similares mediante cálculo de distancia Levenshtein (`source/errors/suggest.ts`).
 - [x] **Integración en Motor de Resolución**
-  - [x] Implementar pila de resolución activa (`activeStack`) durante la invocación recursiva de `resolve`.
+  - [x] Implementar pila de resolución activa (`activeStack`) durante la invocación recursiva síncrona de `resolve`.
   - [x] Detectar presencia de un token en la pila antes de intentar resolverlo en el pipeline.
   - [x] Interrumpir la ejecución inmediatamente lanzando `CircularDependencyError`.
 - [x] **Suite de Pruebas de Diagnóstico**

@@ -13,24 +13,24 @@ The library combines four technical requirements to satisfy its core design obje
 | Branded tokens without reflection | Eliminates compiler flags and runtime reflection libraries by relying on compile-time phantom types attached to native `Symbol` identifiers. |
 | Zero production dependencies | The published library ships with zero runtime dependencies, ensuring minimal footprint, zero supply chain risk, and trivial integration into any runtime. |
 | Rich error DX | Dependency cycles and unresolved tokens output the entire resolution chain leading to the failure point, rather than terminating with opaque null references. |
-| Unified async/sync resolution | Resolution seamlessly unifies synchronous and asynchronous factories: universal async resolution (`resolve`) awaits dependencies and deduplicates promises without penalty, while synchronous resolution (`get`) is preserved for strictly synchronous graphs. |
+| Strictly synchronous resolution | Resolution is 100% synchronous via `container.resolve(token): T` without Promises, event-loop ticks, or function coloring. Instantiations and lookups execute in nanoseconds. |
 
 ## Functional scope
 
 The library will implement:
 - Branded token instantiation with phantom type parameters.
-- Container binding APIs supporting class constructors, polymorphic factory functions (sync/async), and static values.
-- Lifecycle management supporting transient, singleton (with in-flight promise deduplication for async singletons), and resolution-scope lifecycles.
-- Traversal algorithms to detect circular dependencies before stack exhaustion in both sync and async resolution.
+- Container binding APIs supporting class constructors, synchronous factory functions, and static values.
+- Lifecycle management supporting transient, singleton, and resolution-scope lifecycles.
+- Traversal algorithms to detect circular dependencies before call stack exhaustion.
 - Testing override utilities to substitute token bindings within isolated test suites.
 - Dual-target compilation outputting both ESM and CommonJS artifacts with full TypeScript definitions.
 
 ## Roadmap
 
 0. **Phase 0: Core mechanism prototype** — Design and validate the constructor-to-tokens mapping without decorators or reflection. Verify prototype execution using Bun.
-1. **Phase 1: Minimal container core & unified resolution** — Deliver `bind`, universal `resolve`, and sync `get` operations supporting transient scope, polymorphic sync/async factories, and missing-token errors.
-2. **Phase 2: Scopes & lifecycle caching** — Implement singleton caching with in-flight promise deduplication, and resolution-scope lifecycles with instance identity validation tests.
-3. **Phase 3: Error diagnostics DX** — Implement full-chain circular dependency reporting and missing-token remediation suggestions for both sync and async resolution paths.
+1. **Phase 1: Minimal container core & synchronous resolution** — Deliver `bind` and synchronous `resolve` operations supporting transient scope, synchronous factories, and missing-token errors.
+2. **Phase 2: Scopes & lifecycle caching** — Implement synchronous singleton caching and resolution-scope lifecycles with instance identity validation tests.
+3. **Phase 3: Error diagnostics DX** — Implement full-chain circular dependency reporting and missing-token remediation suggestions.
 4. **Phase 4: Test isolation utilities** — Implement declarative binding overrides and container snapshots for unit testing suites.
 5. **Phase 5: Packaging and distribution** — Configure dual ESM/CJS build pipelines, verify bundle size budgets, and publish to npm registry.
 6. **Phase 6: Future extensions** — Evaluate hierarchical child containers and native framework bindings.

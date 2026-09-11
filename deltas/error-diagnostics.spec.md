@@ -13,7 +13,7 @@ Provide a dedicated, zero-dependency diagnostic error hierarchy (`DockdiError`, 
   - `CircularDependencyError` class carrying `readonly cycle: readonly Token<unknown>[]`.
   - `MissingTokenError` class carrying `readonly token: Token<unknown>`, `readonly activeStack: readonly Token<unknown>[]`, and optional `readonly suggestions?: readonly string[]`.
   - `BindingConflictError` class carrying `readonly token: Token<unknown>`.
-  - Resolution stack tracking (`activeStack`) in the resolver engine to detect cyclic dependencies before stack overflow across both synchronous (`get`) and asynchronous (`resolve`) executions.
+  - Resolution stack tracking (`activeStack`) in the synchronous resolver engine to detect cyclic dependencies before call stack overflow during `resolve()` executions.
   - Formatting of cycle trace strings (e.g. `Circular dependency detected: Token[A] -> Token[B] -> Token[C] -> Token[A]`).
   - Zero-dependency Levenshtein distance computation to find registered tokens with similar descriptions when a requested token is missing.
 - **Non-goals**:
@@ -51,7 +51,7 @@ export class BindingConflictError extends DockdiError {
 | Diagnostic Scenario | Error Thrown | Message Format & Features |
 |---|---|---|
 | Dependency cycle encountered (`A -> B -> A` or `A -> B -> C -> B`) | `CircularDependencyError` | `Circular dependency detected: Token[A] -> Token[B] -> Token[A]` |
-| Token not found in container during `get()` | `MissingTokenError` | `Token not registered: Token[X]` + active stack path + `Did you mean: Token[Y]?` (if near-miss exists) |
+| Token not found in container during `resolve()` | `MissingTokenError` | `Token not registered: Token[X]` + active stack path + `Did you mean: Token[Y]?` (if near-miss exists) |
 | Token registered multiple times via `bind()` | `BindingConflictError` | `Token already bound: Token[X]` |
 
 ## Invariants
@@ -64,7 +64,7 @@ export class BindingConflictError extends DockdiError {
 
 ## Deferred / Open questions
  
-- None. Circular dependency detection and resolution stack tracking are implemented uniformly across both synchronous and asynchronous execution paths in Phase 3.
+- None.
 
 ## Acceptance criteria
 

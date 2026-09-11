@@ -44,10 +44,10 @@ The full policy lives in `.claude/settings.json`. Read-only git/inspection comma
 
 ## Conventions
 
-Project-wide invariants (zero decorators/`reflect-metadata`, zero production dependencies, unified resolution supporting synchronous and asynchronous factories transparently) are each enforced via their own file under `.claude/rules/` rather than restated here — see that directory when touching library source or the package manifest.
+Project-wide invariants (zero decorators/`reflect-metadata`, zero production dependencies, strictly synchronous resolution via `container.resolve(token): T`) are each enforced via their own file under `.claude/rules/` rather than restated here — see that directory when touching library source or the package manifest.
 
 ---
 
 ## Non-goals
 
-Property injection, decorator-based metadata extraction, and hierarchical/child containers are undecided-or-excluded for v1 — see `.claude/docs/approach.md` and `.claude/docs/overview.md` for the current scope boundary.
+Asynchronous dependency resolution, property injection, decorator-based metadata extraction, and hierarchical/child containers are undecided-or-excluded for v1 — see `.claude/docs/approach.md` and `.claude/docs/overview.md` for the current scope boundary.

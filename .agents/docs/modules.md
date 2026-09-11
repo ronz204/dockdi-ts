@@ -50,39 +50,44 @@ export interface Binding<T> {
 **Purpose.** Central registration and resolution facade orchestrating binding maps and dispatching requests to the resolver engine.
 
 **Flow.**
-1. Initialization creates an empty token-to-binding registry and a singleton instance cache.
-2. `bind(token)` returns a builder to register class, factory (sync or async), or value bindings.
-3. `get(token)` delegates to the resolver, returning the resolved instance `T` synchronously if the tree contains only synchronous providers; throws `AsyncBindingError` if an async factory is encountered.
-4. `resolve(token)` delegates to the resolver for universal asynchronous resolution, awaiting async dependencies and deduplicating in-flight promises for singletons.
+1. Initialization creates an empty token-to-binding registry and a singleton instance storage.
+2. `bind(token)` returns a builder to register class, synchronous factory, or value bindings.
+3. `override(token)` returns a builder to override bindings in testing, invalidating cached singleton instances.
+4. `restore(token?)` restores original bindings and invalidates mocks.
+5. `resolve(token)` delegates to the resolver, returning the resolved instance `T` strictly synchronously in nanoseconds.
+6. `reset()` clears all cached singleton instances.
 
 **Data shape.**
 ```typescript
 export interface Container {
   bind<T>(token: Token<T>): BindingBuilder<T>;
-  get<T>(token: Token<T>): T;
-  resolve<T>(token: Token<T>): Promise<T>;
+  override<T>(token: Token<T>): BindingBuilder<T>;
+  restore(token?: Token<unknown>): void;
+  resolve<T>(token: Token<T>): T;
+  reset(): void;
 }
 ```
 
 ## `Resolver`
 
-**Purpose.** Core graph traversal engine that resolves dependencies, tracks resolution call stacks, detects cycles, and enforces scoping policies.
+**Purpose.** Core synchronous graph traversal engine that resolves dependencies, tracks active resolution call stacks, detects cycles, and enforces scoping policies.
 
 **Flow.**
-1. Receives the requested token and active resolution context.
-2. Checks whether the token exists in the active resolution stack; if present, aborts immediately with a circular dependency diagnostic error detailing the cycle chain.
-3. Pushes the token to the resolution stack.
+1. Receives the requested token and active resolution session.
+2. Checks whether the token exists in the active resolution stack; if present, aborts immediately by throwing `CircularDependencyError` detailing the cycle chain.
+3. Verifies token is registered; if missing, throws `MissingTokenError` with Levenshtein suggestions.
 4. Checks the instance cache if the binding specifies singleton scope; returns cached reference if found.
-5. If dependencies are declared, recursively resolves each child dependency token.
-6. Instantiates the target class or evaluates the factory using the resolved child instances.
-7. Stores the result in the instance cache if singleton-scoped.
-8. Pops the token from the resolution stack and returns the constructed instance.
+5. Checks the resolution storage if resolution-scoped; returns cached reference within the current session if found.
+6. If dependencies are declared, recursively resolves each child dependency token synchronously.
+7. Instantiates the target class or evaluates the synchronous factory using the resolved child instances.
+8. Stores the result in storage if singleton or resolution-scoped.
+9. Returns the constructed instance `T` synchronously.
 
 **Data shape.**
 ```typescript
-export interface ResolutionContext {
-  readonly activeStack: Token<unknown>[];
-  readonly singletonCache: Map<Token<unknown>, unknown>;
+export interface ResolutionSession {
+  readonly activeStack: readonly Token<unknown>[];
+  readonly resolutionStorage: ResolutionStorage;
 }
 ```
 

@@ -1,38 +1,47 @@
 # Overview
 
-This file covers what dockdi is for and the vocabulary its design is built on. How each concept is actually implemented lives in modules.md, not here; how components communicate lives in structure.md.
+This document defines the core vision, domain model, and operational boundaries of the `dockdi` dependency injection library.
 
 ---
 
 ## Vision
 
-Wiring a class's dependencies in TypeScript today forces a choice: accept decorators plus `reflect-metadata` (extra compiler flags, a runtime polyfill, metadata that only exists because the type system itself can't be queried at runtime), or accept a container that can resolve tokens but can't verify at compile time that a constructor's parameters actually match the tokens supplied for it — the gap other lightweight, reflection-free containers leave open by requiring the constructor-to-token mapping to be declared as a second, separately-maintained list.
+`dockdi` is a type-first dependency injection container for TypeScript designed around explicit branded tokens (phantom types) rather than runtime decorator reflection via `reflect-metadata`. It eliminates the configuration complexity, compilation flags, and runtime overhead typical of traditional inversion-of-control libraries while preserving complete compile-time type safety across token declarations and resolution points.
 
-dockdi's reason to exist is closing that specific gap: make declaring and resolving dependencies feel type-safe at compile time, with a runtime cost no higher than passing around plain `Symbol` values, and without requiring any non-standard compiler behavior. It is not attempting to match the feature surface of a full-featured DI framework — it targets one problem (constructor injection, token-safe, reflection-free) and treats everything else as explicitly out of scope until that core is solid.
+The primary architectural goal is providing natural, type-safe dependency declaration and resolution without modifying compiler settings or relying on global runtime polyfills.
 
 ## Scope & non-goals
 
-In scope: declaring typed tokens, registering resolution strategies against them, resolving a dependency graph from those tokens (unifying synchronous and asynchronous factories via `resolve`, with synchronous convenience via `get`), governing instance lifetime via scopes, and giving actionable errors when resolution fails.
+The library owns:
+- Type-safe token creation using phantom types.
+- Container registration and binding mapping supporting classes, synchronous factories, and constant values.
+- Strictly synchronous dependency resolution via `container.resolve(token): T`.
+- Instance lifecycle management across predefined scopes.
+- Dependency graph traversal, circular dependency detection, and comprehensive diagnostic error reporting.
+- Dual distribution targeting ESM and CommonJS runtimes with zero external production dependencies.
 
-Out of scope for the current version:
-- Property injection — constructor injection is the only supported mechanism.
-- Any form of decorators, including an optional/opt-in one — the zero-decorator invariant applies unconditionally.
-- Framework-specific integrations — these are deferred to a later phase once the core resolution mechanism is proven.
-- Hierarchical/child containers — undecided; may be pulled into scope or deferred further depending on how the core mechanism's design turns out.
+Explicit non-goals for the initial release include:
+- Asynchronous container resolution: asynchronous initialization (e.g. database connections, secret fetching) belongs in the application bootstrap phase, passing resolved instances to the container via `.toValue()`.
+- Property injection: resolution is strictly constrained to constructor parameters and factory arguments.
+- Decorators in any form: decorator-based injection and metadata generation are excluded entirely.
+- Direct framework integration layers: integrations with web or application frameworks remain downstream concerns outside this core library.
+- Child or hierarchical container trees: multi-tier hierarchical resolution is deferred beyond the initial foundational implementation.
 
 ## Domain concepts
 
+The vocabulary and architectural roles governing `dockdi` are detailed below:
+
 | Concept | Description |
 |---|---|
-| Token | A runtime-typed identifier representing "something resolvable of a given type." Carries its type only at compile time (a phantom type); at runtime it behaves like a plain unique value. Nothing is resolvable without a token — it is the atomic unit the rest of the system builds on. |
-| Container | The registry mapping tokens to their resolution strategy. Exposes a minimal surface for registering a strategy against a token and resolving a token back into a value. |
-| Binding | The concrete strategy satisfying a given token — constructing a class, invoking a factory function, or returning a fixed value. |
-| Scope | Governs the lifetime of a resolved instance — whether a fresh instance is created per resolution, one instance is shared for the container's lifetime, or one instance is shared only within a single resolution graph. |
-| Composition root | The single place in a consuming application where bindings are assembled. Everything else in that application is expected to receive its dependencies rather than reach into the container directly. |
-| Constructor-to-token mapping | The mechanism associating each parameter of a constructor with the token that should supply it, without relying on runtime reflection. This is the central open design problem the rest of the system depends on. |
+| `Token<T>` | The fundamental resolvable unit. A typed runtime identifier represented as a unique `Symbol` tagged with a phantom type `T` that carries compile-time type information with zero runtime payload. |
+| `Container` | The central registry holding bindings between tokens and their concrete resolution strategies. Serves as the resolution engine exposing registration and retrieval interfaces. |
+| `Binding` | The resolution strategy bound to a token, determining how a requested dependency is satisfied (class instantiation, factory evaluation, or static constant value). |
+| `Scope` | The lifecycle policy controlling instance lifetime and reuse during resolution cycles, such as transient (new instance per resolution) or singleton (cached single instance). |
+| `Composition Root` | The isolated bootstrapping location within an application where all token bindings are wired into the container. Consuming domain logic does not interact with the container directly. |
+| `Constructor-to-Tokens Mapping` | The explicit association mechanism linking constructor parameter positions to their corresponding tokens without relying on reflection metadata. |
 
 ---
 
 ## Non-goals
 
-Ambient/global container access (a service-locator pattern reached from arbitrary code rather than only from the composition root) is deliberately not a target usage pattern — it defeats the compile-time guarantees the token model exists to provide.
+The library will not attempt to inspect class constructors via reflection, AST parsing, or source code decompilation. Any binding that resolves a class must rely on explicit, user-declared token associations.

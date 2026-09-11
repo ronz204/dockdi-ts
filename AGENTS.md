@@ -33,7 +33,7 @@ All development workflows operate through Bun within the target package director
 ## Conventions
 
 - Dependency injection is strictly token-driven via branded phantom types (`Token<T>`); decorators (`@inject`) and `reflect-metadata` are prohibited.
-- Resolution execution unifies synchronous and asynchronous factories: `container.resolve(token)` provides universal asynchronous resolution for any dependency graph, while `container.get(token)` guarantees synchronous execution when no asynchronous factories exist in the tree.
+- Resolution execution is strictly synchronous: `container.resolve(token)` returns `T` directly without `await`, promises, or event-loop overhead.
 - Published library code maintains zero runtime dependencies.
 - Changes to knowledge-base files under `.agents/` or delta contracts under `libraries/*/deltas/` route through `archivist` per `.agents/rules/kb-edit-routing.md`.
 
@@ -41,4 +41,4 @@ All development workflows operate through Bun within the target package director
 
 ## Non-goals
 
-`dockdi` does not support property injection, decorator metadata extraction, or ambient global container locators.
+`dockdi` does not support asynchronous dependency resolution, property injection, decorator metadata extraction, or ambient global container locators. Asynchronous resource initialization (e.g., establishing database connections or fetching secrets) belongs in the application bootstrap phase, passing resolved instances to the container via `.toValue()`.

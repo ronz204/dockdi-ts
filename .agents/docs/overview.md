@@ -14,13 +14,14 @@ The primary architectural goal is providing natural, type-safe dependency declar
 
 The library owns:
 - Type-safe token creation using phantom types.
-- Container registration and binding mapping supporting polymorphic sync/async factories.
-- Unified dependency resolution: universal async resolution (`resolve`) and strict synchronous execution (`get`).
+- Container registration and binding mapping supporting classes, synchronous factories, and constant values.
+- Strictly synchronous dependency resolution via `container.resolve(token): T`.
 - Instance lifecycle management across predefined scopes.
 - Dependency graph traversal, circular dependency detection, and comprehensive diagnostic error reporting.
 - Dual distribution targeting ESM and CommonJS runtimes with zero external production dependencies.
 
 Explicit non-goals for the initial release include:
+- Asynchronous container resolution: asynchronous initialization (e.g. database connections, secret fetching) belongs in the application bootstrap phase, passing resolved instances to the container via `.toValue()`.
 - Property injection: resolution is strictly constrained to constructor parameters and factory arguments.
 - Decorators in any form: decorator-based injection and metadata generation are excluded entirely.
 - Direct framework integration layers: integrations with web or application frameworks remain downstream concerns outside this core library.

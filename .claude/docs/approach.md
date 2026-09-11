@@ -1,37 +1,39 @@
 # Approach
 
-This file covers the order and philosophy behind building dockdi — what gets built together and in what sequence. Why the project exists lives in overview.md; how the pieces communicate lives in structure.md.
+This document defines the engineering pillars, phased delivery roadmap, and verification criteria for building `dockdi`.
 
 ---
 
 ## Technical pillars
 
+The library combines four technical requirements to satisfy its core design objectives:
+
 | Pillar | What it means here |
 |---|---|
-| Type-first safety | Compile-time type checking, via branded tokens, is the sole safety mechanism for matching dependencies to their consumers — there is no runtime metadata layer backing it up. |
-| Zero decorators / zero reflection | No decorator syntax and no reflection-metadata library, at any point, even as an optional path — this is tied to type-first safety because reflection-based metadata is exactly the alternative this project is deliberately not adopting. |
-| Zero production dependencies | The published library ships with no runtime dependencies. This is tied to the other two pillars: reflection-free, type-first DI is achievable without a supporting runtime library, so adding one would be an unforced compromise. |
-
-These three are built together deliberately, not bolted on separately — dropping any one of them (e.g. accepting one reflection-based dependency "just for this one feature") undermines the reason the other two matter.
+| Branded tokens without reflection | Eliminates compiler flags and runtime reflection libraries by relying on compile-time phantom types attached to native `Symbol` identifiers. |
+| Zero production dependencies | The published library ships with zero runtime dependencies, ensuring minimal footprint, zero supply chain risk, and trivial integration into any runtime. |
+| Rich error DX | Dependency cycles and unresolved tokens output the entire resolution chain leading to the failure point, rather than terminating with opaque null references. |
+| Strictly synchronous resolution | Resolution is 100% synchronous via `container.resolve(token): T` without Promises, event-loop ticks, or function coloring. Instantiations and lookups execute in nanoseconds. |
 
 ## Functional scope
- 
-- Register a binding (class, polymorphic sync/async factory, or fixed value) against a token, and resolve that token back into a value.
-- Govern instance lifetime via scope (transient, singleton with in-flight promise deduplication for async singletons, and resolution-scope).
-- Detect and report, with the full resolution chain, both a missing-token error and a dependency cycle in both sync and async pipelines.
-- Support unified resolution via universal `resolve` (Promise-based) and sync `get` (for purely synchronous trees).
-- Provide a mechanism to override/mock a binding scoped to an individual test.
-- Publish as a dual ESM/CJS build with bundled type declarations.
- 
+
+The library will implement:
+- Branded token instantiation with phantom type parameters.
+- Container binding APIs supporting class constructors, synchronous factory functions, and static values.
+- Lifecycle management supporting transient, singleton, and resolution-scope lifecycles.
+- Traversal algorithms to detect circular dependencies before call stack exhaustion.
+- Testing override utilities to substitute token bindings within isolated test suites.
+- Dual-target compilation outputting both ESM and CommonJS artifacts with full TypeScript definitions.
+
 ## Roadmap
- 
-0. **Core mechanism and validation** — prototype the branded token and a minimal resolver without reflection, focused on deciding the constructor-to-token mapping mechanism.
-1. **Minimal core container & unified resolution** — `bind`, universal `resolve`, sync `get`, transient scope, polymorphic sync/async factories, and missing-token errors end to end.
-2. **Scopes** — add singleton (with concurrent promise deduplication for async singletons) and resolution-scope, with lifecycle test coverage per scope.
-3. **Error developer experience** — cycle detection with a full resolution chain in sync and async paths, missing-token messages with suggestions (e.g. similarly-named registered tokens).
-4. **Testing utilities** — a binding override/mock mechanism scoped to a single test.
-5. **Packaging and publication** — dual ESM/CJS build, a bundle-size budget, public documentation, npm publish.
-6. **(Future, beyond current scope) Hierarchical containers and framework integrations** — child containers, and a native integration with a specific web framework once the core is stable.
+
+0. **Phase 0: Core mechanism prototype** — Design and validate the constructor-to-tokens mapping without decorators or reflection. Verify prototype execution using Bun.
+1. **Phase 1: Minimal container core & synchronous resolution** — Deliver `bind` and synchronous `resolve` operations supporting transient scope, synchronous factories, and missing-token errors.
+2. **Phase 2: Scopes & lifecycle caching** — Implement synchronous singleton caching and resolution-scope lifecycles with instance identity validation tests.
+3. **Phase 3: Error diagnostics DX** — Implement full-chain circular dependency reporting and missing-token remediation suggestions.
+4. **Phase 4: Test isolation utilities** — Implement declarative binding overrides and container snapshots for unit testing suites.
+5. **Phase 5: Packaging and distribution** — Configure dual ESM/CJS build pipelines, verify bundle size budgets, and publish to npm registry.
+6. **Phase 6: Future extensions** — Evaluate hierarchical child containers and native framework bindings.
 
 ## Risks
 
@@ -42,17 +44,20 @@ These three are built together deliberately, not bolted on separately — droppi
 
 ## Done criteria
 
-- Phase 0 is done when a branded token and a minimal resolver compile and run successfully in the chosen runtime, and the constructor-to-token mapping approach is written down as a settled design decision (not left implicit in the prototype code).
-- The functional scope above is done when every bullet in it is implemented and covered by a passing test for its success path and its documented failure path (missing token, cycle).
-- Zero-production-dependency and zero-decorator invariants are done, and stay done, as long as the published package manifest declares no runtime dependencies and no source file uses decorator syntax or a reflection-metadata import — both are continuously checkable, not a one-time milestone.
+The initial implementation milestone is complete when:
+- Constructor injection operates without `experimentalDecorators` or `emitDecoratorMetadata` enabled in TypeScript configuration.
+- A test suite verifies that transient bindings return distinct instances while singletons preserve reference equality across resolution calls.
+- Circular dependency tests confirm that error messages include the complete token cycle path.
+- Build scripts generate both ESM and CommonJS outputs that pass type checking against a consumer project with TypeScript 5.
 
 ## Stretch goals
 
-- Hierarchical/child containers (phase 7).
-- A native integration with a specific web framework's request lifecycle (phase 7).
+Deferred capabilities evaluated following core stabilization:
+- Hierarchical child containers with parent resolution fallback.
+- Native framework bindings tailored for Bun web frameworks such as Elysia.
 
 ---
 
 ## Non-goals
 
-This file does not restate the domain model (token, container, binding, scope) — that vocabulary lives in overview.md.
+No phase of this roadmap will introduce compatibility shims for `reflect-metadata` or decorator-based parameter injection.

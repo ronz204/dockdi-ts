@@ -1,43 +1,98 @@
 # Modules
 
-This file covers what each core concept is responsible for and how it is expected to behave once implemented. Why these concepts exist and how they relate as a domain model lives in overview.md, not here. No production implementation exists yet beyond an initial scaffold — every flow below describes the intended responsibility per the project's roadmap, not code that has landed; the concrete API shape (binding-method names, exact call signatures) is still an open design decision and is deliberately not fixed here.
+This document provides the per-component functional specification, execution flows, and data contracts for `dockdi`.
 
 ---
 
-## Token
+## `Token`
 
-**Purpose.** Represents "something resolvable of a given type" as a runtime-unique identifier that also carries type information at compile time.
+**Purpose.** Factory and branded type construct generating unique, type-safe dependency identifiers at runtime with zero overhead.
 
-**Flow.** Created once per distinct dependency a consumer wants to make resolvable. Used both when registering a binding against it and when requesting resolution — the same token value must be presented at both steps for the container to associate the two correctly.
+**Flow.**
+1. The consumer invokes the token creation function with an optional description string.
+2. The runtime creates a unique `Symbol(description)`.
+3. The symbol is cast to a branded type carrying compile-time type parameter `T`.
+4. The token is returned as an immutable reference usable in binding and resolution calls.
 
-**Data shape.** A unique runtime value (no two independently created tokens are ever equal) combined with a compile-time-only type marker; the marker contributes nothing to the token's runtime shape.
+**Data shape.**
+```typescript
+declare const __brand: unique symbol;
 
-## Container
+export type Token<T> = symbol & {
+  readonly [__brand]: T;
+};
+```
 
-**Purpose.** Holds the mapping from every registered token to its binding, and is the single point through which resolution happens.
+## `Binding`
 
-**Flow.** A binding is registered against a token before any resolution is requested against that token. Resolution accepts a token and returns the value produced by that token's binding, applying whatever scope that binding was registered with. Requesting resolution for a token with no registered binding is an error condition, not a silent fallback — the error is expected to report the full resolution chain that led to the missing token, not just the missing token in isolation. A dependency cycle across bindings is the same category of error: reported with the full chain, not just the point of failure.
+**Purpose.** Encapsulates the strategy and lifecycle configuration associated with a token in the container registry.
 
-**Data shape.** Internally, a mapping from token to binding (plus whatever per-scope instance cache singleton and resolution-scope bindings require). No shape is exposed to consumers beyond the token-in, value-out resolution call.
+**Flow.**
+1. Created via the fluent binding builder exposed by `Container.bind(token)`.
+2. Stores the resolution strategy (`toClass`, `toFactory`, `toValue`), parameter token dependencies, and assigned scope.
+3. Consumed by the resolver to instantiate or retrieve instances.
 
-## Binding
+**Data shape.**
+```typescript
+export type BindingType = "class" | "factory" | "value";
+export type ScopeType = "transient" | "singleton" | "resolution";
 
-**Purpose.** The concrete strategy that produces a value for a given token — constructing a class via its constructor, invoking a factory function, or returning a fixed value directly.
+export interface Binding<T> {
+  readonly type: BindingType;
+  readonly scope: ScopeType;
+  readonly provider: unknown;
+  readonly dependencies?: readonly Token<unknown>[];
+}
+```
 
-**Flow.** Selected at registration time per token, not decided dynamically at resolution time. A class-backed binding must resolve that class's own constructor dependencies (via the constructor-to-token mapping mechanism) before constructing it, recursively, following the same resolution path as any other token.
+## `Container`
 
-**Data shape.** Not yet fixed — depends on the outcome of the constructor-to-token mapping design decision.
+**Purpose.** Central registration and resolution facade orchestrating binding maps and dispatching requests to the resolver engine.
 
-## Scope
+**Flow.**
+1. Initialization creates an empty token-to-binding registry and a singleton instance storage.
+2. `bind(token)` returns a builder to register class, synchronous factory, or value bindings.
+3. `override(token)` returns a builder to override bindings in testing, invalidating cached singleton instances.
+4. `restore(token?)` restores original bindings and invalidates mocks.
+5. `resolve(token)` delegates to the resolver, returning the resolved instance `T` strictly synchronously in nanoseconds.
+6. `reset()` clears all cached singleton instances.
 
-**Purpose.** Governs how many times a binding's underlying value is actually produced across multiple resolution calls.
+**Data shape.**
+```typescript
+export interface Container {
+  bind<T>(token: Token<T>): BindingBuilder<T>;
+  override<T>(token: Token<T>): BindingBuilder<T>;
+  restore(token?: Token<unknown>): void;
+  resolve<T>(token: Token<T>): T;
+  reset(): void;
+}
+```
 
-**Flow.** Transient: a fresh value every resolution. Singleton: one value produced on first resolution, reused for the container's remaining lifetime. Resolution-scope (not yet committed to the first version): one value reused only within a single top-level resolution call's dependency graph, discarded after that call completes.
+## `Resolver`
 
-**Data shape.** Not yet fixed — depends on which scopes ship in the first version.
+**Purpose.** Core synchronous graph traversal engine that resolves dependencies, tracks active resolution call stacks, detects cycles, and enforces scoping policies.
+
+**Flow.**
+1. Receives the requested token and active resolution session.
+2. Checks whether the token exists in the active resolution stack; if present, aborts immediately by throwing `CircularDependencyError` detailing the cycle chain.
+3. Verifies token is registered; if missing, throws `MissingTokenError` with Levenshtein suggestions.
+4. Checks the instance cache if the binding specifies singleton scope; returns cached reference if found.
+5. Checks the resolution storage if resolution-scoped; returns cached reference within the current session if found.
+6. If dependencies are declared, recursively resolves each child dependency token synchronously.
+7. Instantiates the target class or evaluates the synchronous factory using the resolved child instances.
+8. Stores the result in storage if singleton or resolution-scoped.
+9. Returns the constructed instance `T` synchronously.
+
+**Data shape.**
+```typescript
+export interface ResolutionSession {
+  readonly activeStack: readonly Token<unknown>[];
+  readonly resolutionStorage: ResolutionStorage;
+}
+```
 
 ---
 
 ## Non-goals
 
-Does not document a concrete public API (method names, call signatures) — none is settled yet, pending the constructor-to-token mapping design decision.
+Components will not provide JSON serialization or deserialization of registered container graphs, and will not support runtime mutation of existing bindings once the container is sealed.

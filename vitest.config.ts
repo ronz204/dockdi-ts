@@ -14,6 +14,7 @@ export default defineConfig({
   },
   test: {
     include: ["testing/**/*.test.ts"],
+    coverage: { provider: "v8" },
     passWithNoTests: true,
   },
 });

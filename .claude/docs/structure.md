@@ -11,7 +11,7 @@ This file covers the technology stack, how the pieces will communicate, and infr
 | Language | TypeScript, strict mode | The type system is the primary safety mechanism this project relies on in place of runtime reflection — strict mode (no implicit any, no unchecked indexed access, no implicit override) is load-bearing, not incidental. |
 | Runtime / package manager | Bun | Chosen to prototype and validate the core token/resolver mechanism directly, without a separate build step getting in the way during the design-validation phase. |
 | Module resolution | Bundler-mode resolution, ESNext target | Matches how the compiled output is expected to be consumed by downstream bundlers rather than assuming a specific runtime's module loader. |
-| Distribution format | Dual ESM/CJS build with bundled `.d.ts` | Consumers span both module systems; committing to only one would push the compatibility problem onto every consumer instead of solving it once at build time. This is a planned build-phase decision, not yet implemented. |
+| Distribution format | Dual ESM/CJS build with bundled `.d.ts` | Consumers span both module systems; committing to only one would push the compatibility problem onto every consumer instead of solving it once at build time. Implemented via the project's build tool, with a documented sub-3-KB size budget (raw, minified, ESM entry point only). |
 
 ## Topology
 

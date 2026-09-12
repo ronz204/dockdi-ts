@@ -13,7 +13,7 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 | **Fase 2** | Ciclo de vida y Scopes (Singleton síncrono, Resolution Scope) | 🟢 Completada |
 | **Fase 3** | DX de errores (Ciclos con traza completa síncrona y ruta de resolución) | 🟢 Completada |
 | **Fase 4** | Utilidades de testing (Mocking y Overrides) | 🟢 Completada |
-| **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | ⚪ Pendiente |
+| **Fase 5** | Empaquetado y publicación (Dual ESM/CJS, npm) | 🟡 En progreso |
 | **Fase 6** | Extensiones futuras (Child containers, integraciones) | ⚪ Futuro |
 
 ---
@@ -132,16 +132,18 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
 - **Criterio de éxito**: Paquete publicado en npm con artefactos `.mjs`, `.cjs` y `.d.ts`, validado en proyectos cliente puros en Node.js, Bun y navegadores.
 
 ### Tareas
-- [ ] **Configuración de Build Dual**
-  - [ ] Configurar script de compilación para emitir ESM y CommonJS.
-  - [ ] Generar mapas de declaración TypeScript (`.d.ts` y `.d.cts`).
-  - [ ] Configurar `exports`, `main`, `module` y `types` en `package.json`.
-- [ ] **Auditoría de Invariantes**
-  - [ ] Verificar que `dependencies` en `package.json` permanezca vacío (`0` dependencias en runtime).
-  - [ ] Medir y documentar el tamaño del bundle (< 3 KB minified).
+- [x] **Configuración de Build Dual**
+  - [x] Configurar script de compilación para emitir ESM y CommonJS (`bunup.config.ts`, `format: ["esm", "cjs"]`; `bun run build` genera `dist/index.js` y `dist/index.cjs`).
+  - [x] Generar mapas de declaración TypeScript (`.d.ts` y `.d.cts`) — presentes en `dist/` (`dts: true` en `bunup.config.ts`).
+  - [x] Configurar `exports`, `main`, `module` y `types` en `package.json` — verificado, incluye subpath `./package.json`.
+- [x] **Auditoría de Invariantes**
+  - [x] Verificar que `dependencies` en `package.json` permanezca vacío (`0` dependencias en runtime) — confirmado, solo existe `devDependencies`.
+  - [x] Medir y documentar el tamaño del bundle (< 3 KB minified) — `minify: true` en `bunup.config.ts`; ESM (`dist/index.js`) mide 443 B, raw, sin gzip (medido y documentado en `deltas/package-distribution.spec.md`).
+  - [x] Agregar archivo `LICENSE` en la raíz (MIT, coincide con `package.json`).
+  - [x] Documentar `.npmignore` como red de seguridad explícita junto al whitelist de `files` en `package.json` — verificado con `npm pack --dry-run` que solo se empaqueta `dist/`, `LICENSE` y `package.json`.
 - [ ] **Documentación y Ejemplos**
   - [ ] Redactar `README.md` público con guía de inicio rápido y ejemplos de uso (sync y async).
-  - [ ] Crear ejemplos funcionales listos para ejecutar.
+  - [x] Crear ejemplos funcionales listos para ejecutar — `samples/` con 7 ejemplos en inglés cubriendo binding básico, los tres scopes, child containers, overrides de testing, módulos y manejo de errores; verificados con `bun run` uno por uno.
 - [ ] **Publicación**
   - [ ] Configurar pipeline de CI/CD para pruebas y publicación automatizada.
   - [ ] Publicar versión `1.0.0` en npm.

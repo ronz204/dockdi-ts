@@ -22,6 +22,7 @@ This knowledge base governs `.claude/` only. The repo also carries a separate, i
 |---|---|
 | `source/` | Library source |
 | `testing/` | Test suites (unit, integration, benchmarks, helpers) |
+| `samples/` | Runnable usage examples covering the public API, in English — excluded from the published npm package |
 | `deltas/` | Per-slice spec/design/plan files — see Knowledge base layout above |
 
 The repo root is the package itself — `package.json`, `tsconfig.json`, and the rest of the Bun/build config sit directly at the top level; there's no nested package directory.

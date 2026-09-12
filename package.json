@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ronz204/dockdi.git"
+    "url": "git+https://github.com/ronz204/dockdi-ts.git"
   },
   "keywords": [
     "di",

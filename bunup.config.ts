@@ -7,7 +7,7 @@ export default defineConfig({
   outDir: "dist",
   clean: true,
   dts: true,
-  minify: false,
+  minify: true,
   sourcemap: true,
   target: "browser",
   plugins: [exports(), unused({ level: "error" })],

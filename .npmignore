@@ -1,0 +1,27 @@
+# package.json's "files": ["dist"] is the actual publish whitelist — npm
+# ignores this file's rules for anything not already in "files". This list
+# documents, explicitly, what must never ship even if "files" ever changes.
+
+# Source and tests — only the built dist/ output ships
+source/
+testing/
+samples/
+
+# Delta knowledge base and agent harnesses
+deltas/
+.claude/
+.agents/
+
+# Build/tooling config, not needed by consumers
+bunup.config.ts
+vitest.config.ts
+biome.json
+tsconfig.json
+
+# Coverage and other generated reports
+coverage/
+
+# Editor/OS/local noise
+.vscode/
+.idea/
+.DS_Store

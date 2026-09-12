@@ -11,7 +11,7 @@
 
 ---
 
-## Why dockdi?
+## Why DockDi?
 
 Most dependency injection libraries for TypeScript rely on `reflect-metadata` and legacy experimental decorators (`@inject()`, `@injectable()`). While popular, that approach introduces significant drawbacks for modern software development:
 
@@ -89,7 +89,8 @@ Benchmarks measured using [`mitata`](https://github.com/evanwashere/mitata) on B
 | **Singleton resolution** *(warm cache)* | **37.23 ns/iter** | 33.98 ns / 251.90 ns | ~26.8 M ops/sec |
 | **Transient resolution** *(instantiate on resolve)* | **99.44 ns/iter** | 88.35 ns / 383.30 ns | ~10.0 M ops/sec |
 | **Resolution scope resolution** | **158.67 ns/iter** | 145.78 ns / 507.47 ns | ~6.3 M ops/sec |
-| **Linear chain graph** *(depth 50)* | **1.82 µs/iter** | 1.64 µs / 4.10 µs | ~550 K ops/sec |
+| **Linear chain graph** *(depth 10)* | **1.44 µs/iter** | 1.61 µs / 1.92 µs | ~694 K ops/sec |
+| **Linear chain graph** *(depth 50)* | **8.01 µs/iter** | 8.22 µs / 8.86 µs | ~125 K ops/sec |
 
 ---
 

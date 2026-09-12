@@ -141,8 +141,8 @@ Documento de seguimiento manual y local del progreso de desarrollo de `dockdi`. 
   - [x] Medir y documentar el tamaño del bundle (< 3 KB minified) — `minify: true` en `bunup.config.ts`; ESM (`dist/index.js`) mide 443 B, raw, sin gzip (medido y documentado en `deltas/package-distribution.spec.md`).
   - [x] Agregar archivo `LICENSE` en la raíz (MIT, coincide con `package.json`).
   - [x] Documentar `.npmignore` como red de seguridad explícita junto al whitelist de `files` en `package.json` — verificado con `npm pack --dry-run` que solo se empaqueta `dist/`, `LICENSE` y `package.json`.
-- [ ] **Documentación y Ejemplos**
-  - [ ] Redactar `README.md` público con guía de inicio rápido y ejemplos de uso (sync y async).
+- [x] **Documentación y Ejemplos**
+  - [x] Redactar `README.md` público con guía de inicio rápido y ejemplos de uso (sync y async).
   - [x] Crear ejemplos funcionales listos para ejecutar — `samples/` con 7 ejemplos en inglés cubriendo binding básico, los tres scopes, child containers, overrides de testing, módulos y manejo de errores; verificados con `bun run` uno por uno.
 - [ ] **Publicación**
   - [ ] Configurar pipeline de CI/CD para pruebas y publicación automatizada.

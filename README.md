@@ -475,6 +475,17 @@ bun run lint        # Run biome linter
 bun run verify      # typecheck + lint + test in one pass
 ```
 
+### Releasing
+
+Releases are automated with [Changesets](https://github.com/changesets/changesets) and publish to npm via [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) (OIDC) — no npm token is stored in this repo.
+
+1. On any change that should ship a new version, add a changeset describing it: `bunx changeset`.
+2. Commit the generated `.changeset/*.md` file alongside your change and open a PR as usual.
+3. Once merged to `main`, CI opens or updates a "Version Packages" PR that aggregates all pending changesets into a version bump and changelog entry.
+4. Merging that PR triggers the actual `npm publish`.
+
+A change that doesn't warrant a release (docs, internal tooling) can skip the changeset entirely — CI only versions and publishes when one is present.
+
 ---
 
 ## License

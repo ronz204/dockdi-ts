@@ -101,7 +101,8 @@ export class Resolver {
     trace: Trace,
   ): { values: unknown[]; shared: boolean } {
     const resolved = (binding.deps ?? []).map((dep) => ({
-      dep, ...this.visit(dep, trace),
+      dep,
+      ...this.visit(dep, trace),
     }));
 
     return {

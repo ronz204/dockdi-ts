@@ -43,7 +43,9 @@ const container = new Container();
 container.bind(ConfigToken).toValue({ appName: "dockdi-sample", retries: 3 });
 container.bind(LoggerToken).toClass(ConsoleLogger);
 container.bind(GreeterToken).toClass(Greeter, [LoggerToken, ConfigToken]);
-container.bind(RequestIdToken).toFactory(() => ({ value: `req-${Math.floor(Math.random() * 1000)}` }));
+container
+  .bind(RequestIdToken)
+  .toFactory(() => ({ value: `req-${Math.floor(Math.random() * 1000)}` }));
 
 const greeter = container.resolve(GreeterToken);
 greeter.greet("world");

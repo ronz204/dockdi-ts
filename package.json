@@ -42,13 +42,14 @@
   "sideEffects": false,
   "scripts": {
     "build": "bunup",
+    "build:watch": "bunup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "bunup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
+    "verify": "bun run typecheck && bun run lint && bun run test",
     "prepublish": "bun run build && bun run typecheck"
   },
   "devDependencies": {

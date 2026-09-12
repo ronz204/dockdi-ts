@@ -466,11 +466,13 @@ bun run samples/01-basic-binding.ts
 ## Development
 
 ```sh
-bun install       # Install dependencies
-bun run typecheck # Type-check the whole project (strict)
-bun run test      # Run unit and integration tests (vitest)
-bun run build     # Compile dual ESM and CJS bundle (dist/)
-bun run lint      # Run biome linter
+bun install         # Install dependencies
+bun run typecheck   # Type-check the whole project (strict)
+bun run test        # Run unit and integration tests (vitest)
+bun run build       # Compile dual ESM and CJS bundle (dist/)
+bun run build:watch # Rebuild on file changes
+bun run lint        # Run biome linter
+bun run verify      # typecheck + lint + test in one pass
 ```
 
 ---

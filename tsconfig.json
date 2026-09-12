@@ -39,6 +39,6 @@
       "@integration/*": ["./testing/integration/*"]
     }
   },
-  "include": ["source", "testing"],
+  "include": ["source", "testing", "samples"],
   "exclude": ["dist", "node_modules"]
 }

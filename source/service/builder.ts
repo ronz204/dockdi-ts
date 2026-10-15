@@ -37,15 +37,14 @@ export class RegistryBuilder<T> implements BindingBuilder<T> {
   constructor(
     token: Token<T>,
     private readonly registry: Map<Token<unknown>, Binding<unknown>>,
-    allowOverride: boolean = false,
+    private readonly allowOverride: boolean = false,
   ) {
     this.key = token as Token<unknown>;
-    if (!allowOverride && this.registry.has(this.key)) {
-      throw new BindingConflictError(this.key);
-    }
+    this.assertCanBind();
   }
 
   public toValue(value: T): void {
+    this.assertCanBind();
     const binding = new BindingRecord("value", value);
     this.registry.set(this.key, binding);
   }
@@ -69,8 +68,15 @@ export class RegistryBuilder<T> implements BindingBuilder<T> {
     provider: unknown,
     tokens?: readonly Token<unknown>[],
   ): ScopeBuilder {
+    this.assertCanBind();
     const binding = new BindingRecord(type, provider, tokens ?? []);
     this.registry.set(this.key, binding);
     return binding;
+  }
+
+  private assertCanBind(): void {
+    if (!this.allowOverride && this.registry.has(this.key)) {
+      throw new BindingConflictError(this.key);
+    }
   }
 }

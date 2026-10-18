@@ -59,7 +59,10 @@ export class Resolver {
     if (owner !== this && this.singletons.has(token)) {
       return { value: this.singletons.get(token), shared: false };
     }
-    if (owner.singletons.has(token)) {
+    if (
+      owner.singletons.has(token) &&
+      (owner === this || this.canShare(binding, owner))
+    ) {
       return { value: owner.singletons.get(token), shared: true };
     }
 
@@ -77,6 +80,30 @@ export class Resolver {
       resolver = resolver.parent;
     }
     return resolver;
+  }
+
+  private canShare(
+    binding: Binding<unknown>,
+    owner: Resolver,
+    visited?: Set<Token<unknown>>,
+  ): boolean {
+    let scope: Resolver | undefined = this;
+    while (scope !== owner && scope?.registry.size === 0) scope = scope.parent;
+    if (scope === owner) return true;
+
+    // Inspect bindings without executing transient factories on cache hits.
+    const seen = visited ?? new Set<Token<unknown>>();
+    return (binding.deps ?? []).every((dep) => {
+      const dependencyOwner = this.owner(dep);
+      if (dependencyOwner !== owner.owner(dep)) return false;
+      if (!dependencyOwner || seen.has(dep)) return true;
+      seen.add(dep);
+      return this.canShare(
+        dependencyOwner.registry.get(dep) as Binding<unknown>,
+        dependencyOwner,
+        seen,
+      );
+    });
   }
 
   private execute<T>(

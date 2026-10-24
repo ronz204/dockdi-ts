@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4
+
+### Patch Changes
+
+- 80eb4de: Honor child-local dependency overrides when an inherited singleton was already resolved in its parent. Inspect the dependency graph before sharing the parent's cached instance, preserving unaffected sharing without executing factories during the check.
+
 ## 1.0.3
 
 ### Patch Changes
